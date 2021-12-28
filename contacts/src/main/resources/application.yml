@@ -10,4 +10,7 @@ spring:
       enabled: false
       max-file-size: -1
       max-request-size: -1
-
+  profiles:
+    include:
+      - local
+      # - release

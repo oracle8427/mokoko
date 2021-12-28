@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: Contacts-Local
+  datasource:
+    name: mysql
+    hikari:
+      pool-name: Contacts Local HikariCP
+      maximum-pool-size: 20
+      max-lifetime: 0
+      keepalive-time: 60000
+      driver-class-name: org.mariadb.jdbc.Driver
+      username: mokoko
+      password: mokoko8427!@#
+      jdbc-url: jdbc:mariadb://localhost:3307/mokoko?serverTimezone=UTC&characterEncoding=UTF-8
