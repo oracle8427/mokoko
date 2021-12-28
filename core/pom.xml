@@ -8,16 +8,10 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <name>core</name>
     <description>Core</description>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
+    <properties>
+        <spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+    </properties>
 
 </project>
