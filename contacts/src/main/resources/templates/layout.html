@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko-KR">
+<head>
+	<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000">
+	<title>주소록</title>
+	<meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link href="img/favicon.ico" rel="shortcut icon">
+	<link id="loadPStyle" rel="stylesheet" th:href="@{/css/common.css}" >
+</head>
+	<body>
+		<div id="root" style="height: 100%; min-width: 920px;">
+			<div id="kakaoWrap" class="addressbook_type1">
+				<header id="kakaoHead">
+					<div class="wrap_tit"></div>
+
+					<div class="menu_side" style="background: rgb(255, 255, 255);"></div>
+
+					<div class="dimm_side"></div>
+				</header>
+
+				<hr class="hide">
+				<div id="kakaoContent" class="cont_list" role="main"></div>
+
+				<hr class="hide">
+				<footer id="kakaoFoot" style="min-width: 420px; overflow: hidden;"></footer>
+			</div>
+		</div>
+	</body>
+</html>
