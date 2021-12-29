@@ -4,7 +4,7 @@ server:
     context-path: /contacts
 spring:
   application:
-    name: Mail
+    name: Contacts
   servlet:
     multipart:
       enabled: false
