@@ -1,4 +1,4 @@
-package mokoko.user;
+package mokoko;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.annotation.ComponentScan;
