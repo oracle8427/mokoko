@@ -12,6 +12,11 @@ spring:
       username: mokoko
       password: mokoko8427!@#
       jdbc-url: jdbc:mariadb://localhost:3307/mokoko?serverTimezone=UTC&characterEncoding=UTF-8
+  flyway:
+    url: jdbc:mariadb://localhost:3307/mokoko?serverTimezone=UTC&characterEncoding=UTF-8
+    user: mokoko
+    password: mokoko8427!@#
+    enabled: true
 
 logging:
   level:

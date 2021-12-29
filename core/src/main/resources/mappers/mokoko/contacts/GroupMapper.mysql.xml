@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mokoko.contacts.GroupMapper">
+
+    <resultMap type="Group" id="GroupResultMap">
+        <result property="parentID" column="parent_id"/>
+        <result property="userID" column="user_id"/>
+        <result property="sortNumber" column="sort_no"/>
+    </resultMap>
+
+    <select id="selectGroups" resultMap="GroupResultMap">
+        SELECT *
+        FROM contact_group
+        WHERE user_id = #{id}
+    </select>
+
+    <insert id="insertGroup">
+        INSERT INTO contact_group (
+            parent_id,
+            user_id,
+            name,
+            sort_no
+        ) VALUES (
+            #{parentID},
+            #{userID},
+            #{name},
+            #{sortNumber}
+        )
+    </insert>
+
+    <update id="updateGroup">
+        UPDATE contact_group
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentID != null">
+                parent_id = #{parentID},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="sortNumber != null">
+                sort_no = #{sortNumber},
+            </if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteGroup">
+        DELETE FROM contact_group
+        WHERE id in
+        <foreach collection="idList" item="id" index="i" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
