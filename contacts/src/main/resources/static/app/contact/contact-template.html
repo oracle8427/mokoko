@@ -1,0 +1,103 @@
+<script type="text/template" id="sidebar-template">
+	<div class="wrap_profile">
+		<a href="#" class="link_menu">
+			<span class="ico_addressbook ico_menu">메뉴</span>
+		</a>
+		<div class="ico_profile">
+			<a href="#" class="link_account">
+				<span class="screen_out">계정 정보</span>
+			</a>
+			<span class="thumb_profile" style="background-image: url(&quot;https://k.kakaocdn.net/dn/tGFOv/btrfbPDXBEi/QjzfBBc6v2noQArlp97ia1/img_110x110.jpg&quot;);"></span>
+			<svg class="ico_obj" width="160" height="160px" viewBox="0 0 160 160" version="1.1" xmlns="http://www.w3.org/2000/svg"><path class="ico_path" d="M170,-10 L170,170 L-10,170 L-10,-10 L170,-10 Z M80,0 C20.5777778,0 0,20.5777778 0,80 C0,139.422222 20.5777778,160 80,160 C139.422222,160 160,139.422222 160,80 C160,20.5777778 139.422222,0 80,0 Z" stroke-width="0"></path><path class="obj_stroke" d="M160,80 C160,139.422222 139.422222,160 80,160 C20.5777778,160 0,139.422222 0,80 C0,20.5777778 20.5777778,0 80,0 C139.422222,0 160,20.5777778 160,80 Z" fill="none"></path></svg>
+		</div>
+	</div>
+	<nav id="kakaoGnb" style="user-select: none;">
+		<h2 class="screen_out">메뉴</h2>
+		<div class="box_add">
+			<button type="button" class="btn_add"><span class="ico_addressbook ico_add"></span><span class="txt_add">주소추가</span></button>
+		</div>
+		<div class="box_menu">
+			<ul class="list_menu">
+				<li class="item_current">
+					<a class="link_menu" href="/">
+						<span class="ico_menu"><span class="ico_addressbook ico_all"></span></span>
+						<span class="txt_menu">전체</span>
+						<span class="num_count">1</span>
+					</a>
+				</li>
+				<li class="">
+					<a class="link_menu" href="/recently">
+								<span class="ico_menu">
+									<span class="ico_addressbook ico_recent"></span>
+								</span>
+						<span class="txt_menu">최근 이용한 연락처</span>
+						<span class="num_count">2</span>
+					</a>
+				</li>
+
+				<li class="">
+					<a class="link_menu" href="/important">
+						<span class="ico_menu"><span class="ico_addressbook ico_star"></span></span>
+						<span class="txt_menu">중요한 연락처</span>
+						<span class="num_count">0</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+
+		<div class="box_menu box_accordion box_open">
+			<button type="button" class="btn_accordion">그룹<span class="ico_addressbook ico_arr"></span></button>
+			<ul class="list_menu list_group" style="cursor: pointer;">
+				<li class="" style="border-top: 0px; padding: 0px;">
+					<a class="link_menu" href="/groups/10255">
+						<span class="ico_menu"><span class="ico_addressbook ico_group"></span></span><span class="txt_menu">algo</span><span class="num_count">1</span>
+					</a>
+					<div class="wrap_edit" style="top: 3px;">
+						<button type="button" class="btn_edit btn_modify"><span class="ico_addressbook ico_modify">수정</span></button>
+						<button type="button" class="btn_edit btn_del"><span class="ico_addressbook ico_del">삭제</span></button>
+					</div>
+				</li>
+			</ul>
+
+			<div class="wrap_edit wrap_edit2">
+				<button type="button" class="btn_edit btn_new"><span class="ico_addressbook ico_new"></span><span class="txt_btn">새 그룹 만들기</span></button>
+				<button type="button" class="btn_edit btn_manage"><span class="ico_addressbook ico_manage"></span><span class="txt_btn">그룹관리</span></button>
+			</div>
+		</div>
+
+		<div class="box_menu">
+			<ul class="list_menu">
+				<li>
+					<a class="link_menu link_trash" href="/trash">
+						<span class="ico_menu"><span class="ico_addressbook ico_trash"></span></span><span class="txt_menu">휴지통</span>
+					</a>
+					<button type="button" class="btn_recycle">비우기</button>
+				</li>
+				<li class="item_pc">
+					<a class="link_menu" href="/import"><span class="ico_menu"><span class="ico_addressbook ico_import"></span></span><span class="txt_menu">주소록 가져오기</span></a>
+				</li>
+				<li class="item_pc">
+					<a class="link_menu" href="/export"><span class="ico_menu"><span class="ico_addressbook ico_export"></span></span><span class="txt_menu">주소록 내보내기</span></a>
+				</li>
+				<li class="item_mobile">
+					<a href="https://mail-notice.kakao.com/addrbook/en/main" target="_blank" rel="noreferrer" class="link_menu">
+								<span class="ico_menu">
+									<span class="ico_addressbook ico_notice"></span>
+								</span>
+						<span class="txt_menu">공지사항</span><span class="ico_addressbook ico_new2">new</span>
+					</a>
+				</li>
+				<li class="item_mobile">
+					<a href="https://cs.kakao.com/helps?service=156&amp;category=521&amp;locale=en" target="_blank" rel="noreferrer" class="link_menu">
+							<span class="ico_menu">
+								<span class="ico_addressbook ico_cs"></span>
+							</span>
+						<span class="txt_menu">고객센터/도움말</span></a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+</script>
+
+<script type="text/template" id="content-layout-template">
+</script>
