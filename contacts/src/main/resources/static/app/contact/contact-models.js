@@ -18,11 +18,6 @@ define([ 'app'], function(app) {
 				contactExpansions : []
 			},
 			initialize : function(attributes, options) {
-				var contacts = this.get("contactExpansions");
-				if (contacts) {
-					this.contacts = new contact.ContactCollection(contacts);
-					this.unset('contactExpansions');
-				}
 				Backbone.Model.prototype.initialize.apply(this, arguments);
 			}
 		});
@@ -42,15 +37,11 @@ define([ 'app'], function(app) {
 				parentID : 0,
 				userID : '',
 				name : '',
-				trash : 0,
+				important : 0,
+				groupType : 0,
 				sortNumber : 0
 			},
 			initialize : function() {
-				var groups = this.get("groups");
-				if (groups) {
-					this.groups = new contact.GroupCollection(groups);
-					this.unset('groups');
-				}
 				Backbone.Model.prototype.initialize.apply(this, arguments);
 			}
 		});

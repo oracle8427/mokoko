@@ -16,56 +16,55 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
 
-@SpringBootApplication(scanBasePackages = { "mokoko" })
+@SpringBootApplication(scanBasePackages = {"mokoko"})
 public class ContactsApplication {
-	private static final Logger LOG = LoggerFactory.getLogger(ContactsApplication.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ContactsApplication.class);
 
-	public static void main(String[] args) {
-		SpringApplication.run(ContactsApplication.class, args);
-		LOG.info("Logger Class: " + LOG.getClass().getName());
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(ContactsApplication.class, args);
+        LOG.info("Logger Class: " + LOG.getClass().getName());
+    }
 
-	@Configuration
-	@MapperScan(value = { "mokoko"})
-	@EnableTransactionManagement
-	public static class DatabaseConfig {
+    @Configuration
+    @MapperScan(value = {"mokoko"})
 
-		@Value("${spring.datasource.name}")
-		private String name;
+    public static class DatabaseConfig {
 
-		@Bean
-		@ConfigurationProperties("spring.datasource.hikari")
-		public DataSource dataSource() {
-			return DataSourceBuilder.create().type(HikariDataSource.class).build();
-		}
+        @Value("${spring.datasource.name}")
+        private String name;
 
-		@Bean
-		public SqlSessionFactory sqlSessionFactory(DataSource dataSource, ApplicationContext applicationContext)
-				throws Exception {
-			SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
-			sqlSessionFactoryBean.setDataSource(dataSource);
-			sqlSessionFactoryBean.setTypeAliasesPackage("mokoko");
+        @Bean
+        @ConfigurationProperties("spring.datasource.hikari")
+        public DataSource dataSource() {
+            return DataSourceBuilder.create().type(HikariDataSource.class).build();
+        }
 
-			String resourcePattern = "classpath*:/mappers/mokoko/**/*Mapper." + name + ".xml";
-			Resource[] resources = applicationContext.getResources(resourcePattern);
-			sqlSessionFactoryBean.setMapperLocations(resources);
-			if(LOG.isDebugEnabled()) {
-				LOG.debug("Mapper resources location: ");
-				Arrays.stream(resources).forEach(resource -> LOG.debug("\t" + resource.toString()));
-				LOG.debug("// Mapper resources location");
-			}
-			return sqlSessionFactoryBean.getObject();
-		}
+        @Bean
+        public SqlSessionFactory sqlSessionFactory(DataSource dataSource, ApplicationContext applicationContext)
+                throws Exception {
+            SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+            sqlSessionFactoryBean.setDataSource(dataSource);
+            sqlSessionFactoryBean.setTypeAliasesPackage("mokoko");
 
-		@Bean
-		public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
-			return new SqlSessionTemplate(sqlSessionFactory);
-		}
-	}
+            String resourcePattern = "classpath*:/mappers/mokoko/**/*Mapper." + name + ".xml";
+            Resource[] resources = applicationContext.getResources(resourcePattern);
+            sqlSessionFactoryBean.setMapperLocations(resources);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Mapper resources location: ");
+                Arrays.stream(resources).forEach(resource -> LOG.debug("\t" + resource.toString()));
+                LOG.debug("// Mapper resources location");
+            }
+            return sqlSessionFactoryBean.getObject();
+        }
+
+        @Bean
+        public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
+            return new SqlSessionTemplate(sqlSessionFactory);
+        }
+    }
 
 }

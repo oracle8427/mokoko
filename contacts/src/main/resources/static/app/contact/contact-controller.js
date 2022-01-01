@@ -5,6 +5,7 @@ define([ 'app', 'app/app-init', 'app/contact/contact-models', 'app/contact/conta
 		contact.Controller = Backbone.Marionette.Controller.extend({
 			initialize : function(options) {
 				contact.groupCollection = new contact.GroupCollection();
+				contact.groupCollection.fetch();
 				this.showSidebarView();
 				this.showContentLayout();
 			},
@@ -14,7 +15,7 @@ define([ 'app', 'app/app-init', 'app/contact/contact-models', 'app/contact/conta
 			},
 			showSidebarView : function() {
 				this.sidebarView = new contact.SidebarView({
-
+					groupCollection : contact.groupCollection
 				});
 				app.snbRegion.show(this.sidebarView);
 			},

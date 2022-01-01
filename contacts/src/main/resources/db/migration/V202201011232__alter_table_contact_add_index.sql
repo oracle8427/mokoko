@@ -1,0 +1,1 @@
+ALTER TABLE contact ADD INDEX contact_ix_group_id (group_id ASC) ;

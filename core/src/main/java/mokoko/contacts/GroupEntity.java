@@ -2,47 +2,59 @@ package mokoko.contacts;
 
 public class GroupEntity {
 
-	private int id;
-	private int parentID;
-	private String userID;
-	private String name;
-	private int trash;
-	private int sortNumber;
+    private int id;
+    private String userID;
+    private String name;
+    private int important;
+    private int groupType;
+    private int sortNumber;
 
-	public GroupEntity() {
+    public GroupEntity() {
 
-	}
+    }
 
-	public GroupEntity(int id, int parentID, String userID, String name, int trash, int sortNumber) {
-		this.id = id;
-		this.parentID = parentID;
-		this.userID = userID;
-		this.name = name;
-		this.trash = trash;
-		this.sortNumber = sortNumber;
-	}
+    public GroupEntity(int id, String userID, String name, int important, int groupType, int sortNumber) {
+        this.id = id;
+        this.userID = userID;
+        this.name = name;
+        this.important = important;
+        this.groupType = groupType;
+        this.sortNumber = sortNumber;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public int getParentID() {
-		return parentID;
-	}
+    public String getUserID() {
+        return userID;
+    }
 
-	public String getUserID() {
-		return userID;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public int getImportant() {
+        return important;
+    }
 
-	public int getTrash() {
-		return trash;
-	}
+    public int getGroupType() {
+        return groupType;
+    }
 
-	public int getSortNumber() {
-		return sortNumber;
-	}
+    public int getSortNumber() {
+        return sortNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "GroupEntity{" +
+                "id=" + id +
+                ", userID='" + userID + '\'' +
+                ", name='" + name + '\'' +
+                ", important=" + important +
+                ", groupType=" + groupType +
+                ", sortNumber=" + sortNumber +
+                '}';
+    }
 }

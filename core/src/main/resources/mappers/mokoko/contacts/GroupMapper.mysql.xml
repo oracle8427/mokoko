@@ -2,38 +2,47 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mokoko.contacts.GroupMapper">
 
+    <sql id="ContactGroupColumns">
+        id
+        , user_id, name, sort_no, group_type, important
+    </sql>
+
     <resultMap type="Group" id="GroupResultMap">
-        <result property="parentID" column="parent_id"/>
         <result property="userID" column="user_id"/>
+        <result property="groupType" column="group_type"/>
         <result property="sortNumber" column="sort_no"/>
+        <result property="contactsCount" column="contacts_count"/>
     </resultMap>
 
     <select id="selectGroups" resultMap="GroupResultMap">
-        SELECT *
-        FROM contact_group
-        WHERE user_id = #{id}
+        SELECT cg.id,
+               cg.user_id,
+               name,
+               important,
+               group_type,
+               cg.sort_no,
+               COUNT(c.id) contacts_count
+        FROM contact_group cg
+                 LEFT JOIN contact c
+                           ON cg.id = c.group_id
+        WHERE cg.user_id = #{userID}
+          AND group_type = 0
+        GROUP BY cg.id
+        ORDER BY sort_no
     </select>
 
     <insert id="insertGroup">
-        INSERT INTO contact_group (
-            parent_id,
-            user_id,
-            name,
-            sort_no
-        ) VALUES (
-            #{parentID},
-            #{userID},
-            #{name},
-            #{sortNumber}
-        )
+        INSERT INTO contact_group (user_id,
+                                   name,
+                                   sort_no)
+        VALUES (#{userID},
+                #{name},
+                #{sortNumber})
     </insert>
 
     <update id="updateGroup">
         UPDATE contact_group
         <trim prefix="SET" suffixOverrides=",">
-            <if test="parentID != null">
-                parent_id = #{parentID},
-            </if>
             <if test="name != null">
                 name = #{name},
             </if>

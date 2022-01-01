@@ -10,6 +10,7 @@
 			marionette : 'js/lib/backbone.marionette-1.8.8',
 			'backbone.routefilter' : 'js/lib/backbone.routefilter-0.2.1',
 			'backbone.queryparams' : 'js/lib/backbone.queryparams-0.4.0.custom',
+			'jquery.ui' : 'js/lib/jquery-ui-1.11.4/jquery-ui',
 			'jquery.dateFormat' : 'js/lib/jquery-dateFormat-1.0.2',
 			'jquery.dateFormat.i18n' : 'js/lib/jquery-dateFormat-1.0.2-i18n'
 		},
@@ -28,14 +29,25 @@
 			'backbone.queryparams' : {
 				deps : [ 'jquery', 'underscore', 'backbone' ]
 			},
+			'jquery.ui' : {
+				deps : [ 'jquery' ]
+			},
 			'jquery.dateFormat' : {
 				deps : [ 'jquery' ]
 			},
 			app : {
-				deps : [ 'underscore', 'backbone', 'marionette', 'backbone.routefilter', 'backbone.queryparams' ]
+				deps : [ 'jquery.ui', 'underscore', 'backbone', 'marionette', 'backbone.routefilter', 'backbone.queryparams' ]
 			},
 		},
-		waitSeconds : 0
+		waitSeconds: 0
+	});
+
+
+	require([ 'jquery' ], function($) {
+		$.ajaxSetup({
+			traditional : true,
+			cache : false
+		});
 	});
 
 	require([ 'backbone' ], function(Backbone) {
@@ -43,7 +55,7 @@
 		Backbone.emulateJSON = true;
 	});
 
-	require([ 'jquery', 'app', 'app/app-init'], function($, app) {
+	require([ 'jquery', 'app', 'app/app-init', 'app/contact/contact-router'], function($, app) {
 		$(function() {
 			app.start();
 		});

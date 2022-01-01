@@ -47,17 +47,10 @@
 
 		<div class="box_menu box_accordion box_open">
 			<button type="button" class="btn_accordion">그룹<span class="ico_addressbook ico_arr"></span></button>
-			<ul class="list_menu list_group" style="cursor: pointer;">
-				<li class="" style="border-top: 0px; padding: 0px;">
-					<a class="link_menu" href="/groups/10255">
-						<span class="ico_menu"><span class="ico_addressbook ico_group"></span></span><span class="txt_menu">algo</span><span class="num_count">1</span>
-					</a>
-					<div class="wrap_edit" style="top: 3px;">
-						<button type="button" class="btn_edit btn_modify"><span class="ico_addressbook ico_modify">수정</span></button>
-						<button type="button" class="btn_edit btn_del"><span class="ico_addressbook ico_del">삭제</span></button>
-					</div>
-				</li>
-			</ul>
+
+			<!-- group-template -->
+			<div id="groupRegion"></div>
+			<!-- // group-template -->
 
 			<div class="wrap_edit wrap_edit2">
 				<button type="button" class="btn_edit btn_new"><span class="ico_addressbook ico_new"></span><span class="txt_btn">새 그룹 만들기</span></button>
@@ -81,23 +74,44 @@
 				</li>
 				<li class="item_mobile">
 					<a href="https://mail-notice.kakao.com/addrbook/en/main" target="_blank" rel="noreferrer" class="link_menu">
-								<span class="ico_menu">
-									<span class="ico_addressbook ico_notice"></span>
-								</span>
+						<span class="ico_menu">
+							<span class="ico_addressbook ico_notice"></span>
+						</span>
 						<span class="txt_menu">공지사항</span><span class="ico_addressbook ico_new2">new</span>
 					</a>
 				</li>
 				<li class="item_mobile">
 					<a href="https://cs.kakao.com/helps?service=156&amp;category=521&amp;locale=en" target="_blank" rel="noreferrer" class="link_menu">
-							<span class="ico_menu">
-								<span class="ico_addressbook ico_cs"></span>
-							</span>
-						<span class="txt_menu">고객센터/도움말</span></a>
+						<span class="ico_menu">
+							<span class="ico_addressbook ico_cs"></span>
+						</span>
+						<span class="txt_menu">고객센터/도움말</span>
+					</a>
 				</li>
 			</ul>
 		</div>
 	</nav>
 </script>
 
+<!-- <li style:'border-top: 0px; padding: 0px'> -->
+<script type="text/template" id="group-item-template">
+	<a class="link_menu" href="/groups/<%- group.id %>">
+			<span class="ico_menu">
+				<span class="ico_addressbook ico_group"></span>
+			</span>
+		<span class="txt_menu"><%- group.name %></span>
+		<span class="num_count"><%- group.contactsCount > 0 ? group.contactsCount : '' %></span>
+	</a>
+	<div class="wrap_edit" style="top: 3px;">
+		<button type="button" class="btn_edit btn_modify"><span class="ico_addressbook ico_modify">수정</span></button>
+		<button type="button" class="btn_edit btn_del"><span class="ico_addressbook ico_del">삭제</span></button>
+	</div>
+</script>
+
+
 <script type="text/template" id="content-layout-template">
+</script>
+
+<script id="node-template" type="text/template">
+	<li><span><%= nodeName %></span></li>
 </script>

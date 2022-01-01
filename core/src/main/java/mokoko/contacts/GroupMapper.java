@@ -8,12 +8,12 @@ import java.util.Map;
 @Mapper
 public interface GroupMapper {
 
-	List<Group> selectGroups();
+    List<Group> selectGroups(Map<String, Object> params);
 
-	int insertGroup(Map<String, Object> parameter);
+    int insertGroup(Group group);
 
-	int updateGroup(Map<String, Object> parameter);
+    int updateGroup(Map<String, Object> params);
 
-	int deleteGroup(List<Integer> idList);
+    int deleteGroup(List<Integer> idList);
 
 }
