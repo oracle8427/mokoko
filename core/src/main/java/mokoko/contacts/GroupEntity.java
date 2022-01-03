@@ -5,7 +5,6 @@ public class GroupEntity {
     private int id;
     private String userID;
     private String name;
-    private int important;
     private int groupType;
     private int sortNumber;
 
@@ -13,11 +12,10 @@ public class GroupEntity {
 
     }
 
-    public GroupEntity(int id, String userID, String name, int important, int groupType, int sortNumber) {
+    public GroupEntity(int id, String userID, String name, int groupType, int sortNumber) {
         this.id = id;
         this.userID = userID;
         this.name = name;
-        this.important = important;
         this.groupType = groupType;
         this.sortNumber = sortNumber;
     }
@@ -34,10 +32,6 @@ public class GroupEntity {
         return name;
     }
 
-    public int getImportant() {
-        return important;
-    }
-
     public int getGroupType() {
         return groupType;
     }
@@ -52,7 +46,6 @@ public class GroupEntity {
                 "id=" + id +
                 ", userID='" + userID + '\'' +
                 ", name='" + name + '\'' +
-                ", important=" + important +
                 ", groupType=" + groupType +
                 ", sortNumber=" + sortNumber +
                 '}';

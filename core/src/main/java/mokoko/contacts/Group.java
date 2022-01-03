@@ -2,8 +2,9 @@ package mokoko.contacts;
 
 public class Group extends GroupEntity {
 
-    public static final int USER = 0;
-    public static final int TRASH = 1;
+    public static final int ALL = 0;
+    public static final int USER = 1;
+    public static final int TRASH = 2;
 
     private long contactsCount;
 

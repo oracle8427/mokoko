@@ -5,6 +5,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
         contact.SidebarView = Backbone.Marionette.Layout.extend({
             initialize: function () {
                 this.listenTo(contact.groupCollection, 'sync', this.showGroups);
+                this.listenTo(app.vent, 'fetch:contact-count', this.getContactCount);
             },
             template: function () {
                 var html, compiledTemplate = contact.SidebarView.compiledTemplate;
@@ -20,13 +21,25 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 groupRegion: 'div#groupRegion'
             },
             onRender: function () {
-
+                app.vent.trigger('fetch:contact-count', ['all', 'recent']);
             },
             showGroups: function () {
                 var groupView = new contact.GroupTreeRootView({
                     collection: contact.groupCollection
                 });
                 this.groupRegion.show(groupView);
+            },
+            getContactCount: function (condition) {
+                if (!condition)
+                    return false;
+
+                new Backbone.Model().fetch({
+                    url: 'groups/count',
+                    data: $.param({'condition': condition}),
+                    success: function (model, response, xhr) {
+
+                    }
+                });
             }
         });
 

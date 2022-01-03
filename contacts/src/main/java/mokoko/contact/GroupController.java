@@ -1,5 +1,6 @@
 package mokoko.contact;
 
+import mokoko.contacts.ContactService;
 import mokoko.contacts.Group;
 import mokoko.contacts.GroupService;
 import mokoko.error.BadRequestException;
@@ -25,9 +26,13 @@ public class GroupController {
 
     private final UserWrapperService userWrapperService;
 
-    public GroupController(GroupService groupService, UserWrapperService userWrapperService) {
+    private final ContactService contactService;
+
+    public GroupController(GroupService groupService, UserWrapperService userWrapperService,
+                           ContactService contactService) {
         this.groupService = groupService;
         this.userWrapperService = userWrapperService;
+        this.contactService = contactService;
     }
 
     @GetMapping("")
@@ -37,6 +42,9 @@ public class GroupController {
             throw new NotFoundException("Not Found User");
         Map<String, Object> map = new HashMap<>();
         map.put("userID", username);
+        map.put("all", Group.ALL);
+        map.put("user", Group.USER);
+
         return groupService.getGroups(map);
     }
 
@@ -49,7 +57,6 @@ public class GroupController {
 
     @PostMapping(value = "order", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
     public ResponseEntity<?> updateSortOrder(@RequestParam String model) {
-        System.out.println(model);
         Map<String, Object> params = JacksonJsonUtil.readValueAsMap(model);
         Object value = params.get("idList");
 
@@ -59,6 +66,24 @@ public class GroupController {
         List<?> idList = (List<?>) value;
         groupService.updateSortOrder(idList);
         return ResponseEntity.ok(idList);
+    }
+
+    @GetMapping("count")
+    public ResponseEntity<?> getGroupCount(@RequestParam List<String> condition) {
+        if (condition.size() == 0)
+            throw new BadRequestException("Bad Parameter.");
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userID", userWrapperService.getUsername());
+
+        Map<String, Object> response = new HashMap<>();
+        if (condition.contains("all"))
+            response.put("all", contactService.getAllCount(params));
+        if (condition.contains("recent"))
+            response.put("recent", contactService.getRecentCount(params));
+        if (condition.contains("important"))
+            response.put("important", contactService.getImportantCount(params));
+        return ResponseEntity.ok(response);
     }
 
 }

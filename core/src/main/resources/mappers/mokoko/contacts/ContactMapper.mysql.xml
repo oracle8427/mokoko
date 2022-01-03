@@ -3,10 +3,12 @@
 <mapper namespace="mokoko.contacts.ContactMapper">
 
     <sql id="ContactColumns">
-        id, group_id, user_id, fullname, firstname, lastname, nickname, birth, organization, position, sort_no, notes
+        id
+        , group_id, user_id, fullname, firstname, lastname, nickname, birth, organization, position, sort_no, notes
     </sql>
     <sql id="ContactExpansionColumns">
-        id, contact_id, phone, phone_type, messenger, address, address_type, special_day, special_day_type, email,
+        id
+        , contact_id, phone, phone_type, messenger, address, address_type, special_day, special_day_type, email,
         sort_no, created
     </sql>
 
@@ -22,6 +24,7 @@
         <result property="position" column="position"/>
         <result property="sortNumber" column="sort_no"/>
         <result property="notes" column="notes"/>
+        <result property="important" column="important"/>
         <collection property="contactExpansions" ofType="ContactExpansion">
             <result property="id" column="contact_expansion_id"/>
             <result property="contactID" column="contact_id"/>
@@ -36,19 +39,60 @@
             <result property="sortNumber" column="contact_expansion_sort_no"/>
             <result property="created" column="created"/>
         </collection>
+        <collection property="groupIDList" ofType="Integer"/>
     </resultMap>
 
     <select id="selectContacts" resultMap="ContactResultMap">
-        SELECT c.id, group_id, user_id, fullname, firstname, lastname, nickname, birth, organization, position,
-               c.sort_no, notes,
-               ce.id contact_expansion_id, contact_id, phone, phone_type, messenger, address, address_type,
-               special_day, special_day_type, email, ce.sort_no contact_expansion_sort_no, created
+        SELECT c.id,
+               user_id,
+               fullname,
+               firstname,
+               lastname,
+               nickname,
+               birth,
+               organization,
+               position,
+               c.sort_no,
+               notes,
+               ce.id      contact_expansion_id,
+               contact_id,
+               phone,
+               phone_type,
+               messenger,
+               address,
+               address_type,
+               special_day,
+               special_day_type,
+               email,
+               ce.sort_no contact_expansion_sort_no,
+               created,
+               important
         FROM contact c
-        INNER JOIN contact_expansion ce
-            ON c.id = ce.contact_id
+                 INNER JOIN contact_expansion ce
+                            ON c.id = ce.contact_id
         ORDER BY ce.sort_no
     </select>
 
+    <select id="selectAllCount" resultType="int">
+        SELECT COUNT(*)
+        FROM contact
+        WHERE user_id = #{userID}
+    </select>
+
+    <select id="selectImportantCount" resultType="int">
+        SELECT COUNT(*)
+        FROM contact
+        WHERE user_id = #{userID}
+          AND important = 1
+    </select>
+
+    <select id="selectRecentCount" resultType="int">
+        SELECT COUNT(*)
+        FROM contact_recent cr
+                 INNER JOIN contact c
+                            ON cr.contact_id = c.id
+        WHERE cr.user_id = #{userID}
+    </select>
 
 
 </mapper>

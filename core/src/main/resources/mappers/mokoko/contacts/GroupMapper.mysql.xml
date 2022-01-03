@@ -4,7 +4,7 @@
 
     <sql id="ContactGroupColumns">
         id
-        , user_id, name, sort_no, group_type, important
+        , user_id, name, sort_no, group_type
     </sql>
 
     <resultMap type="Group" id="GroupResultMap">
@@ -15,18 +15,17 @@
     </resultMap>
 
     <select id="selectGroups" resultMap="GroupResultMap">
-        SELECT cg.id,
-               cg.user_id,
+        SELECT id,
+               user_id,
                name,
-               important,
                group_type,
-               cg.sort_no,
-               COUNT(c.id) contacts_count
+               sort_no,
+               COUNT(ccg.group_id) contacts_count
         FROM contact_group cg
-                 LEFT JOIN contact c
-                           ON cg.id = c.group_id
+                 LEFT JOIN contact_contact_group ccg
+                           ON cg.id = ccg.group_id
         WHERE cg.user_id = #{userID}
-          AND group_type = 0
+          AND (group_type = #{all} OR group_type = #{user})
         GROUP BY cg.id
         ORDER BY sort_no
     </select>
