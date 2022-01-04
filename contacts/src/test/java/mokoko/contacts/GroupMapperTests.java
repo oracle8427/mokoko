@@ -14,27 +14,27 @@ import java.util.Map;
 @SpringBootTest
 public class GroupMapperTests extends TestConfiguration {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private GroupMapper croupMapper;
+    @Autowired
+    private GroupMapper croupMapper;
 
-	@Test
-	public void contextLoad() {
-		try {
-			selectGroups();
-		} catch (Exception e) {
-			log.error("Error", e);
-		}
-	}
+    @Test
+    public void contextLoad() {
+        try {
+            selectGroups();
+        } catch (Exception e) {
+            log.error("Error", e);
+        }
+    }
 
-	public void selectGroups() {
-		Map<String, Object> map = new HashMap<>();
-		map.put("userID", "mailmaster@mokoko.shop");
-		List<Group> groups = croupMapper.selectGroups(map);
-		groups.forEach(group -> log.info(group.toString()));
+    public void selectGroups() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("userID", "mailmaster@mokoko.shop");
+        List<Group> groups = croupMapper.selectGroups(map);
+        groups.forEach(group -> log.info(group.toString()));
 
-	}
+    }
 
 
 }

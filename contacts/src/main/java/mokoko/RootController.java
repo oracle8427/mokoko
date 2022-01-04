@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class RootController {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	@RequestMapping("")
-	public String layout() {
-		log.info("layout...");
-		return "layout";
-	}
+    @RequestMapping("")
+    public String layout() {
+        log.info("layout...");
+        return "layout";
+    }
 
 }
