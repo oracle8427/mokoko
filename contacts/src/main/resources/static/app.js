@@ -1,5 +1,6 @@
 define([ 'marionette' ], function(Marionette) {
 	var app = new Marionette.Application();
+	app.rootElement = '#root';
 
 	app.log = function(message, object) {
 		if(typeof console !== "undefined") {

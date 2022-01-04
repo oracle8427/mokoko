@@ -19,14 +19,14 @@
 		<div class="box_menu">
 			<ul class="list_menu">
 				<li class="item_current">
-					<a class="link_menu" href="/">
+					<a class="link_menu" href="/" id="all">
 						<span class="ico_menu"><span class="ico_addressbook ico_all"></span></span>
 						<span class="txt_menu">전체</span>
 						<span class="num_count">1</span>
 					</a>
 				</li>
 				<li class="">
-					<a class="link_menu" href="/recently">
+					<a class="link_menu" href="/recently" id="recently">
 								<span class="ico_menu">
 									<span class="ico_addressbook ico_recent"></span>
 								</span>
@@ -36,7 +36,7 @@
 				</li>
 
 				<li class="">
-					<a class="link_menu" href="/important">
+					<a class="link_menu" href="/important" id="important">
 						<span class="ico_menu"><span class="ico_addressbook ico_star"></span></span>
 						<span class="txt_menu">중요한 연락처</span>
 						<span class="num_count">0</span>
@@ -91,6 +91,7 @@
 			</ul>
 		</div>
 	</nav>
+    <div id="groupLayerRegion"></div>
 </script>
 
 <!-- <li style:'border-top: 0px; padding: 0px'> -->
@@ -108,6 +109,33 @@
 	</div>
 </script>
 
+<script type="text/template" id="group-layer-template">
+<%
+	var title = group.isNew ? '새 그룹 만들기' : '그룹 수정';
+%>
+	<div class="layer_head"><strong class="tit_layer"><label for="tfNewGroup"><%- title %></label></strong></div>
+	<div class="layer_body">
+		<form id="frmNewGroup" action="#">
+			<fieldset class="fld_addressbook">
+				<legend class="screen_out">새그룹 만들기 입력 폼</legend>
+				<div class="wrap_comm">
+					<div class="box_tf">
+                        <input type="text" id="tfNewGroup" name="tfNewGroup" class="tf_g"
+                               title="그룹명 입력" placeholder="그룹명은 10자까지 입력할 수 있습니다." autocomplete="off">
+						<button type="button" class="btn_del"><span class="ico_addressbook ico_del">삭제</span></button>
+					</div>
+				</div>
+				<div class="wrap_btn">
+					<button type="submit" class="btn_comm btn_type2">확인</button>
+					<button type="button" class="btn_comm btn_type1">취소</button>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+	<div class="layer_foot">
+		<button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+	</div>
+</script>
 
 <script type="text/template" id="content-layout-template">
 </script>

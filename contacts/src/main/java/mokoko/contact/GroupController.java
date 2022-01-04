@@ -79,8 +79,8 @@ public class GroupController {
         Map<String, Object> response = new HashMap<>();
         if (condition.contains("all"))
             response.put("all", contactService.getAllCount(params));
-        if (condition.contains("recent"))
-            response.put("recent", contactService.getRecentCount(params));
+        if (condition.contains("recently"))
+            response.put("recently", contactService.getRecentCount(params));
         if (condition.contains("important"))
             response.put("important", contactService.getImportantCount(params));
         return ResponseEntity.ok(response);

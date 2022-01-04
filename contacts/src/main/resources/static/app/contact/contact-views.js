@@ -6,6 +6,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             initialize: function () {
                 this.listenTo(contact.groupCollection, 'sync', this.showGroups);
                 this.listenTo(app.vent, 'fetch:contact-count', this.getContactCount);
+                this.listenTo(app.vent, 'show:group-layer', this.showGroupLayer);
             },
             template: function () {
                 var html, compiledTemplate = contact.SidebarView.compiledTemplate;
@@ -18,10 +19,16 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 return html;
             },
             regions: {
-                groupRegion: 'div#groupRegion'
+                groupRegion: 'div#groupRegion',
+                groupLayerRegion: 'div#groupLayerRegion'
             },
             onRender: function () {
-                app.vent.trigger('fetch:contact-count', ['all', 'recent']);
+                app.vent.trigger('fetch:contact-count', ['all', 'important', 'recently']);
+
+                this.$el.find('button.btn_new:first').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    app.vent.trigger('show:group-layer');
+                });
             },
             showGroups: function () {
                 var groupView = new contact.GroupTreeRootView({
@@ -29,15 +36,29 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
                 this.groupRegion.show(groupView);
             },
+            showGroupLayer: function (groupModel) {
+                var groupLayerView = new contact.GroupLayerView({
+                    model: groupModel ? groupModel : new contact.GroupModel()
+                });
+                this.groupLayerRegion.show(groupLayerView);
+                groupLayerView.$el.appendTo(app.rootElement);
+                app.vent.trigger('show:dimmed');
+            },
             getContactCount: function (condition) {
                 if (!condition)
                     return false;
 
+                var self = this;
                 new Backbone.Model().fetch({
                     url: 'groups/count',
                     data: $.param({'condition': condition}),
                     success: function (model, response, xhr) {
-
+                        if (model.has('all'))
+                            self.$el.find('#all span.num_count').text(model.get('all'));
+                        if (model.has('important'))
+                            self.$el.find('#important span.num_count').text(model.get('important'));
+                        if (model.has('recently'))
+                            self.$el.find('#recently span.num_count').text(model.get('recently'));
                     }
                 });
             }
@@ -100,6 +121,59 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         });
 
                     }
+                });
+            }
+        });
+
+        contact.GroupLayerView = Backbone.Marionette.ItemView.extend({
+            className: 'layer_alert',
+            attributes: {
+                style: "z-index: 10001;"
+            },
+            initialize: function () {
+                if (this.model.isNew())
+                    this.model.set('isNew', true);
+            },
+            template: function (data) {
+                var html, compiledTemplate = contact.GroupLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#group-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.GroupLayerView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate({
+                    group: data
+                });
+                return html;
+            },
+            onRender: function () {
+                var self = this;
+
+                var $groupName = this.$el.find('input#tfNewGroup');
+                var $box = $groupName.closest('div.box_tf');
+                $groupName.focus(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    if (!$box.hasClass('box_focus'))
+                        $box.addClass('box_focus');
+                });
+                $groupName.focusout(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    if ($box.hasClass('box_focus'))
+                        $box.removeClass('box_focus');
+                });
+
+                // Problems with trying to use .focus() in an event handler
+                // usually stem from the event being handled also having an affect on focus.
+                // To get around that, I usually just wrap the .focus() call in a timeout
+                setTimeout(function () {
+                    $groupName.focus();
+                }, 1)
+
+                var $closeButton = this.$el.find('button.btn_close').add(this.$el.find('button.btn_type1'));
+                $closeButton.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    app.vent.trigger('hide:dimmed');
+                    self.close();
                 });
             }
         });
