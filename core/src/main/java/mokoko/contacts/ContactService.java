@@ -29,4 +29,8 @@ public class ContactService {
     public int getRecentCount(Map<String, Object> params) {
         return contactMapper.selectRecentCount(params);
     }
+
+    public int unLinkGroup(int groupID) {
+        return contactMapper.deleteGroupID(groupID);
+    }
 }

@@ -115,6 +115,9 @@
         </div>
     </nav>
     <div id="groupLayerRegion"></div>
+    <div id="alertLayerRegion"></div>
+    <div id="toastLayerRegion"></div>
+    <div id="groupRemoveLayerRegion"></div>
 </script>
 
 <!-- <li style:'border-top: 0px; padding: 0px'> -->
@@ -124,7 +127,7 @@
 				<span class="ico_addressbook ico_group"></span>
 			</span>
         <span class="txt_menu"><%- group.name %></span>
-        <span class="num_count"><%- group.contactsCount > 0 ? group.contactsCount : '' %></span>
+        <span class="num_count"><%- group.contactsCount || 0 %></span>
     </a>
     <div class="wrap_edit" style="top: 3px;">
         <button type="button" class="btn_edit btn_modify"><span class="ico_addressbook ico_modify">수정</span></button>
@@ -133,10 +136,11 @@
 </script>
 
 <script type="text/template" id="group-layer-template">
-    <%
-    var title = group.isNew ? '새 그룹 만들기' : '그룹 수정';
-    %>
-    <div class="layer_head"><strong class="tit_layer"><label for="tfNewGroup"><%- title %></label></strong></div>
+    <div class="layer_head">
+        <strong class="tit_layer">
+            <label for="tfNewGroup"><%- isNew ? '새 그룹 만들기' : '그룹수정' %></label>
+        </strong>
+    </div>
     <div class="layer_body">
         <form id="frmNewGroup" action="#">
             <fieldset class="fld_addressbook">
@@ -144,7 +148,10 @@
                 <div class="wrap_comm">
                     <div class="box_tf">
                         <input type="text" id="tfNewGroup" name="tfNewGroup" class="tf_g"
-                               title="그룹명 입력" placeholder="그룹명은 10자까지 입력할 수 있습니다." autocomplete="off">
+                               title="그룹명 입력" autocomplete="off"
+                               placeholder="<%- isNew ? '그룹명은 10자까지 입력할 수 있습니다.' : ''%>"
+                               value="<%- group.name %>"
+                               maxlength="10">
                         <button type="button" class="btn_del"><span class="ico_addressbook ico_del">삭제</span></button>
                     </div>
                 </div>
@@ -156,6 +163,58 @@
         </form>
     </div>
     <div class="layer_foot">
+        <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+    </div>
+</script>
+
+<script type="text/template" id="group-remove-layer-template">
+    <div class="layer_alert">
+        <div class="layer_head"><strong class="tit_layer">그룹삭제</strong></div>
+        <div class="layer_body"><p class="desc_layer">그룹 삭제 시, 삭제할 정보를 선택해주세요.</p>
+            <div class="group_radio">
+                <div class="item_radio">
+                    <input type="radio" id="inpDelGroup1" name="inpDelGroup" class="inp_radio" checked="" value="group">
+                    <label class="lab_radio" for="inpDelGroup1">
+                        <span class="ico_addressbook ico_radio"></span>그룹만 지우기
+                    </label>
+                </div>
+                <div class="item_radio">
+                    <input type="radio" id="inpDelGroup2" name="inpDelGroup" class="inp_radio" value="all">
+                    <label class="lab_radio" for="inpDelGroup2">
+                        <span class="ico_addressbook ico_radio"></span>그룹에 속한 연락처도 함께 지우기
+                    </label>
+                </div>
+            </div>
+            <div class="wrap_btn">
+                <button type="button" class="btn_comm btn_type2">확인</button>
+                <button type="button" class="btn_comm btn_type1">취소</button>
+            </div>
+        </div>
+        <div class="layer_foot">
+            <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="alert-layer-template">
+    <div class="layer_alert" style="z-index: 10004;">
+        <div class="layer_head"><strong class="tit_layer tit_alert"></strong></div>
+        <div class="layer_body">
+            <div class="wrap_alert"><p class="txt_alert">
+                <span><%- data.message %><br></span></p>
+            </div>
+            <div class="wrap_btn">
+                <button type="button" class="btn_comm btn_type2">확인</button>
+            </div>
+        </div>
+        <div class="layer_foot">
+            <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="toast-layer-template">
+    <div class="toast_comm" style="z-index: 100000;"><p class="txt_toast"><span><%- data.message %><br></span></p>
         <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
     </div>
 </script>

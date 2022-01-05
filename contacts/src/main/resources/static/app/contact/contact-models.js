@@ -34,10 +34,8 @@ define(['app'], function (app) {
             urlRoot: 'groups',
             idAttribute: 'id',
             defaults: {
-                parentID: 0,
                 userID: '',
                 name: '',
-                important: 0,
                 groupType: 0,
                 sortNumber: 0
             },

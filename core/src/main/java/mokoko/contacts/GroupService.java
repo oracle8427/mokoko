@@ -14,8 +14,15 @@ public class GroupService {
 
     private final GroupMapper groupMapper;
 
-    public GroupService(GroupMapper groupMapper) {
+    private final ContactService contactService;
+
+    public GroupService(GroupMapper groupMapper, ContactService contactService) {
         this.groupMapper = groupMapper;
+        this.contactService = contactService;
+    }
+
+    public Group getGroup(Map<String, Object> params) {
+        return groupMapper.selectGroup(params);
     }
 
     public List<Group> getGroups(Map<String, Object> params) {
@@ -24,6 +31,12 @@ public class GroupService {
 
     public int createGroup(Group group) {
         return groupMapper.insertGroup(group);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void removeGroupAndMoveContacts(int groupID) {
+        contactService.unLinkGroup(groupID);
+        groupMapper.deleteGroup(groupID);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -40,11 +53,6 @@ public class GroupService {
         return groupMapper.updateGroup(params);
     }
 
-    public int deleteGroup() {
-        List<Integer> idList = new ArrayList<>();
-        if (idList.size() > 0)
-            return groupMapper.deleteGroup(idList);
-        return 0;
-    }
+
 
 }

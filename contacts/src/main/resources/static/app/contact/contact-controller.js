@@ -5,7 +5,10 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
         contact.Controller = Backbone.Marionette.Controller.extend({
             initialize: function (options) {
                 contact.groupCollection = new contact.GroupCollection();
-                contact.groupCollection.fetch();
+                this.listenTo(app.vent, 'fetch:group-collection', function () {
+                    contact.groupCollection.fetch();
+                });
+                app.vent.trigger('fetch:group-collection');
                 this.showSidebarView();
                 this.showContentLayout();
             },

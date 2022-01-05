@@ -16,4 +16,6 @@ public interface ContactMapper {
 
     int selectRecentCount(Map<String, Object> params);
 
+    int deleteGroupID(int groupID);
+
 }

@@ -14,6 +14,17 @@
         <result property="contactsCount" column="contacts_count"/>
     </resultMap>
 
+    <select id="selectGroup" resultMap="GroupResultMap">
+        SELECT id,
+               user_id,
+               name,
+               group_type,
+               sort_no
+        FROM contact_group
+        WHERE user_id = #{userID}
+          AND group_type = #{groupType}
+    </select>
+
     <select id="selectGroups" resultMap="GroupResultMap">
         SELECT id,
                user_id,
@@ -25,18 +36,23 @@
                  LEFT JOIN contact_contact_group ccg
                            ON cg.id = ccg.group_id
         WHERE cg.user_id = #{userID}
-          AND (group_type = #{all} OR group_type = #{user})
+          AND group_type = #{groupType}
         GROUP BY cg.id
         ORDER BY sort_no
     </select>
 
     <insert id="insertGroup">
+        <selectKey resultType="int" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
         INSERT INTO contact_group (user_id,
-                                   name,
-                                   sort_no)
+        name,
+        sort_no,
+        group_type)
         VALUES (#{userID},
-                #{name},
-                #{sortNumber})
+        #{name},
+        #{sortNumber},
+        #{groupType})
     </insert>
 
     <update id="updateGroup">
@@ -53,11 +69,9 @@
     </update>
 
     <delete id="deleteGroup">
-        DELETE FROM contact_group
-        WHERE id in
-        <foreach collection="idList" item="id" index="i" open="(" close=")" separator=",">
-            #{id}
-        </foreach>
+        DELETE
+        FROM contact_group
+        WHERE id = #{id}
     </delete>
 
 </mapper>

@@ -94,5 +94,9 @@
         WHERE cr.user_id = #{userID}
     </select>
 
+    <delete id="deleteGroupID">
+        DELETE FROM contact_contact_group
+        WHERE group_id = #{groupID}
+    </delete>
 
 </mapper>

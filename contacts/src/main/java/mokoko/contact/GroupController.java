@@ -42,17 +42,37 @@ public class GroupController {
             throw new NotFoundException("Not Found User");
         Map<String, Object> map = new HashMap<>();
         map.put("userID", username);
-        map.put("all", Group.ALL);
-        map.put("user", Group.USER);
-
+        map.put("groupType", Group.USER);
         return groupService.getGroups(map);
     }
 
     @PostMapping(value = "", headers = "Content-Type=application/x-www-form-urlencoded")
     public ResponseEntity<?> createGroup(@RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+
         Group group = JacksonJsonUtil.readValue(model, Group.class);
+        group.setUserID(username);
+        group.setGroupType(Group.USER);
         groupService.createGroup(group);
         return ResponseEntity.ok(group);
+    }
+
+    @PostMapping(value = "{id}", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=DELETE")
+    public ResponseEntity<?> removeGroup(@PathVariable int id, @RequestParam String mode) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+
+        if ("group".equals(mode)) {
+            groupService.removeGroupAndMoveContacts(id);
+        } else if ("all".equals(mode)) {
+            // TODO: remove contacts && group && unlink other groups...
+        } else {
+            throw new BadRequestException("unknown");
+        }
+        return ResponseEntity.ok(id);
     }
 
     @PostMapping(value = "order", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
