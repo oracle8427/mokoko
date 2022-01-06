@@ -78,6 +78,11 @@ public class JacksonJsonUtil {
         return value;
     }
 
+    public static <T> T mapToPOJO(Map<String, Object> map, Class<T> pojoType) {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(map, pojoType);
+    }
+
     public static Map<String, Object> readValueAsMap(String content) throws RuntimeException {
         HashMap<String, Object> value;
         try {

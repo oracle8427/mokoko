@@ -4,13 +4,12 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
 
         contact.Controller = Backbone.Marionette.Controller.extend({
             initialize: function (options) {
+                app.vent.trigger('show:overlay-loading');
                 contact.groupCollection = new contact.GroupCollection();
-                this.listenTo(app.vent, 'fetch:group-collection', function () {
-                    contact.groupCollection.fetch();
-                });
-                app.vent.trigger('fetch:group-collection');
+                contact.contactCollection = new contact.ContactCollection();
                 this.showSidebarView();
                 this.showContentLayout();
+                app.vent.trigger('hide:overlay-loading');
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -23,20 +22,30 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 app.snbRegion.show(this.sidebarView);
             },
             showContentLayout: function () {
-                this.contentLayout = new contact.ContentLayout({});
+                this.contentLayout = new contact.ContentLayout({
+                    contactCollection: contact.contactCollection
+                });
                 app.contentRegion.show(this.contentLayout);
             },
             contacts: function (groupID, params) {
-                if (!groupID) {
-                    return;
-                }
-
                 if (_.size(contact.groupCollection) === 0) {
                     this.listenToOnce(contact.groupCollection, 'sync', function () {
                         this.contacts(groupID, params);
                     });
                     return;
                 }
+
+                var options = {
+                    success: function (collection, models, xhr) {
+
+                    }
+                }
+
+                if (groupID) {
+                    params = _.extend({'groupID': groupID}, params)
+                    options['url'] = contact.contactCollection.url + '?' + $.param(params);
+                }
+                contact.contactCollection.fetch(options);
             }
         });
 

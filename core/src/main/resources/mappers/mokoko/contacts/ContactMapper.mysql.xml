@@ -39,38 +39,90 @@
             <result property="sortNumber" column="contact_expansion_sort_no"/>
             <result property="created" column="created"/>
         </collection>
-        <collection property="groupIDList" ofType="Integer"/>
+        <collection property="groups" ofType="Group">
+            <result property="id" column="group_id"/>
+            <result property="name" column="name"/>
+        </collection>
     </resultMap>
 
-    <select id="selectContacts" resultMap="ContactResultMap">
-        SELECT c.id,
-               user_id,
-               fullname,
-               firstname,
-               lastname,
-               nickname,
-               birth,
-               organization,
-               position,
-               c.sort_no,
-               notes,
-               ce.id      contact_expansion_id,
-               contact_id,
-               phone,
-               phone_type,
-               messenger,
-               address,
-               address_type,
-               special_day,
-               special_day_type,
-               email,
-               ce.sort_no contact_expansion_sort_no,
-               created,
-               important
-        FROM contact c
-                 INNER JOIN contact_expansion ce
-                            ON c.id = ce.contact_id
-        ORDER BY ce.sort_no
+    <sql id="ContactsColumns">
+        c.id,
+        c.user_id,
+        fullname,
+        firstname,
+        lastname,
+        nickname,
+        birth,
+        organization,
+        position,
+        c.sort_no,
+        notes,
+        ce.id contact_expansion_id,
+        ce.contact_id,
+        phone,
+        phone_type,
+        messenger,
+        address,
+        address_type,
+        special_day,
+        special_day_type,
+        email,
+        ce.sort_no contact_expansion_sort_no,
+        created,
+        important
+    </sql>
+
+    <select id="selectAllContacts" resultMap="ContactResultMap">
+        SELECT group_id, name, t.*
+        FROM (
+            SELECT <include refid="ContactsColumns" />
+            FROM contact c
+                INNER JOIN contact_expansion ce
+                    ON c.id = ce.contact_id
+            where c.user_id = #{userID}
+            ORDER BY c.sort_no
+        ) t
+        LEFT JOIN (
+            SELECT group_id, ccg.contact_id, name
+            FROM contact_group cg
+                INNER JOIN contact_contact_group ccg
+                    ON cg.id = ccg.group_id
+            WHERE user_id = #{userID}
+        ) cg
+            ON id = cg.contact_id
+    </select>
+
+    <select id="selectGroupContacts" resultMap="ContactResultMap">
+        SELECT group_id, name, contacts.*
+        FROM (
+            SELECT <include refid="ContactsColumns" />
+            FROM (
+                SELECT contact_id
+                FROM contact_contact_group
+                WHERE group_id = #{groupID}
+            ) ccg
+                INNER JOIN contact c
+                    ON c.id = ccg.contact_id
+                INNER JOIN contact_expansion ce
+                     ON c.id = ce.contact_id
+           ORDER  BY c.sort_no
+        ) contacts
+            LEFT JOIN (
+                SELECT group_id, contact_id, name
+                FROM contact_group cg
+                    INNER JOIN contact_contact_group ccg
+                        ON cg.id = ccg.group_id
+                WHERE  user_id = #{userID}
+            ) cg
+                ON contacts.id = cg.contact_id;
+    </select>
+
+    <select id="selectIDListAtGroup" resultType="int">
+        SELECT ccg.contact_id
+        FROM contact_contact_group ccg
+            INNER JOIN contact c
+                ON ccg.contact_id = c.id
+        WHERE group_id = #{groupID}
     </select>
 
     <select id="selectAllCount" resultType="int">
@@ -89,14 +141,33 @@
     <select id="selectRecentCount" resultType="int">
         SELECT COUNT(*)
         FROM contact_recent cr
-                 INNER JOIN contact c
-                            ON cr.contact_id = c.id
+            INNER JOIN contact c
+                ON cr.contact_id = c.id
         WHERE cr.user_id = #{userID}
     </select>
 
-    <delete id="deleteGroupID">
-        DELETE FROM contact_contact_group
-        WHERE group_id = #{groupID}
+    <delete id="deleteContact">
+        DELETE
+        FROM contact
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteContactExpansion">
+        DELETE
+        FROM contact_expansion
+        WHERE contact_id = #{contactID}
+    </delete>
+
+    <delete id="deleteContactRecent">
+        DELETE
+        FROM contact_recent
+        WHERE contact_id = #{contactID}
+    </delete>
+
+    <delete id="unlinkGroup">
+        DELETE
+        FROM contact_contact_group
+        WHERE contact_id = #{contactID}
     </delete>
 
 </mapper>

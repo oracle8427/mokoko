@@ -4,11 +4,14 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
         contact.SidebarView = Backbone.Marionette.Layout.extend({
             initialize: function () {
-                this.listenToOnce(contact.groupCollection, 'sync', this.showGroups);
+                this.listenTo(app.vent, 'fetch:group-collection', function () {
+                    this.listenToOnce(contact.groupCollection, 'sync', this.showGroups);
+                    contact.groupCollection.fetch();
+                });
+                app.vent.trigger('fetch:group-collection');
                 this.listenTo(app.vent, 'fetch:contact-count', this.getContactCount);
                 this.listenTo(app.vent, 'show:group-layer', this.showGroupLayer);
                 this.listenTo(app.vent, 'show:group-remove-layer', this.showGroupRemoveLayer);
-
                 this.listenTo(app.vent, 'show:alert-layer', this.showAlertLayer);
                 this.listenTo(app.vent, 'show:toast-layer', this.showToastLayer);
             },
@@ -103,6 +106,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             },
             initialize: function () {
                 this.collection = this.model.groups;
+                this.listenTo(this.model, 'sync', this.render);
             },
             template: function (data) {
                 var html, compiledTemplate = contact.GroupTreeView.compiledTemplate;
@@ -127,6 +131,11 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.$el.find('button.btn_del').click(function (event) {
                     event.preventDefault() && event.stopPropagation();
                     app.vent.trigger('show:group-remove-layer', self.model);
+                });
+
+                this.$el.find('a.link_menu').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    location.hash = '#' + $(this).attr('href');
                 });
             },
             onClose: function () {
@@ -241,11 +250,19 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                             $closeButton.click();
                         }
                     }
-                    self.groupModel.set({
-                        name: groupName,
-                        sortNumber: _.last(contact.groupCollection.models).get('sortNumber') + 1
-                    });
+                    var attributes = {
+                        name: groupName
+                    }
+                    if (self.groupModel.isNew())
+                        attributes['sortNumber'] = _.last(contact.groupCollection.models).get('sortNumber') + 1;
+
+                    if (!self.groupModel.isNew())
+                        options['patch'] = true;
+
+                    self.groupModel.set(attributes);
                     contact.groupCollection.create(self.groupModel, options);
+
+                    console.log(self.groupModel);
                 });
             },
             onShow: function () {
@@ -278,12 +295,19 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     var mode = self.$el.find('input[name=inpDelGroup]:checked').val();
                     self.model.destroy({
                         url: self.model.url() + '?mode=' + mode,
+                        wait: true,
                         success: function () {
                             app.vent.trigger('show:toast-layer', {
                                 message: '선택한 그룹이 삭제되었습니다.'
                             });
+                            app.vent.trigger('fetch:contact-count', ['all', 'important', 'recently']);
+
+                            // 연락처까지 삭제로 인해 영향받은 모든 그룹을 찾아서 연락처 개수를 갱신 시켜줄 수는 없으므로 fetch:
+                            if ('all' === mode)
+                                app.vent.trigger('fetch:group-collection');
+                        },
+                        complete: function () {
                             self.close();
-                            // TODO: mode = "all" => 중요 연락처, 최근, 전체 갯수 갱신
                         }
                     });
                 });
@@ -337,21 +361,55 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             }
         });
 
-        contact.ContentLayout = Backbone.Marionette.Layout.extend({
+        contact.ContactListView = Backbone.Marionette.ItemView.extend({
             template: function (data) {
-                var html = contact.$template.filter('#content-layout-template').html();
-                var compiledTemplate = _.template(html);
+                var html, compiledTemplate = contact.ContactListView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#contact-list-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ContactListView.compiledTemplate = compiledTemplate;
+                }
                 html = compiledTemplate({
-                    group: data,
+                    contactCollection: data.contactCollection
                 });
                 return html;
             },
-            regions: {},
-            initialize: function (options) {
+            onRender: function () {
 
+            }
+        });
+
+        contact.ContentLayout = Backbone.Marionette.Layout.extend({
+            tagName: 'article',
+            attributes: {
+                id: 'mArticle'
+            },
+            template: function (data) {
+                var html, compiledTemplate = contact.ContentLayout.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#content-layout-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ContentLayout.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate({});
+                return html;
+            },
+            regions: {
+                contactListRegion: 'div#contactListRegion',
+            },
+            initialize: function (options) {
+                this.contactCollection = options.contactCollection;
+                this.listenTo(this.contactCollection, 'sync', this.showContactList);
             },
             onRender: function () {
 
+            },
+            showContactList: function (contactCollection) {
+                this.contactListRegion.show(new contact.ContactListView({
+                    model: new Backbone.Model({
+                        contactCollection: !contactCollection ? this.contactCollection : contactCollection
+                    })
+                }));
             }
         });
 

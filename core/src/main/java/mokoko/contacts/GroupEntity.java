@@ -40,26 +40,6 @@ public class GroupEntity {
         return sortNumber;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setUserID(String userID) {
-        this.userID = userID;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setGroupType(int groupType) {
-        this.groupType = groupType;
-    }
-
-    public void setSortNumber(int sortNumber) {
-        this.sortNumber = sortNumber;
-    }
-
     @Override
     public String toString() {
         return "GroupEntity{" +

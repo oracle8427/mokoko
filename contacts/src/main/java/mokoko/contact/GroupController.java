@@ -52,11 +52,24 @@ public class GroupController {
         if (username == null || username.length() == 0)
             throw new NotFoundException("Not Found User");
 
-        Group group = JacksonJsonUtil.readValue(model, Group.class);
-        group.setUserID(username);
-        group.setGroupType(Group.USER);
+        Map<String, Object> params = JacksonJsonUtil.readValueAsMap(model);
+        params.put("userID", username);
+        params.put("groupType", Group.USER);
+        Group group = JacksonJsonUtil.mapToPOJO(params, Group.class);
         groupService.createGroup(group);
         return ResponseEntity.ok(group);
+    }
+
+    @PostMapping(value = "{id}", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
+    public ResponseEntity<?> updateGroup(@PathVariable int id, @RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+
+        Map<String, Object> params = JacksonJsonUtil.readValueAsMap(model);
+        params.put("userID", username);
+        groupService.updateGroup(params);
+        return ResponseEntity.ok(params);
     }
 
     @PostMapping(value = "{id}", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=DELETE")
@@ -65,10 +78,21 @@ public class GroupController {
         if (username == null || username.length() == 0)
             throw new NotFoundException("Not Found User");
 
+        if (id <= 0)
+            throw new BadRequestException("Invalid Parameter id: " + id);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        params.put("userID", username);
+        params.put("groupType", Group.USER);
+        Group group = groupService.getGroup(params);
+        if (group == null)
+            throw new NotFoundException("Not Found Group");
+
         if ("group".equals(mode)) {
-            groupService.removeGroupAndMoveContacts(id);
+            groupService.removeGroup(group.getId());
         } else if ("all".equals(mode)) {
-            // TODO: remove contacts && group && unlink other groups...
+            groupService.removeGroupAndContacts(group.getId());
         } else {
             throw new BadRequestException("unknown");
         }

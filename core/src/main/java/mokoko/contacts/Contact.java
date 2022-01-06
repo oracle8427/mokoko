@@ -10,10 +10,10 @@ public class Contact extends ContactEntity {
         return contactExpansions;
     }
 
-    private List<Integer> groupIDList;
+    private List<Group> groups;
 
-    public List<Integer> getGroupIDList() {
-        return groupIDList;
+    public List<Group> getGroups() {
+        return groups;
     }
 
     @Override
@@ -26,10 +26,10 @@ public class Contact extends ContactEntity {
                 sb.append("\t\t").append(contactExpansion).append("\n");
             sb.append('\t');
         }
-        if (groupIDList != null && groupIDList.size() > 0) {
+        if (groups != null && groups.size() > 0) {
             sb.append("\n\tgroupIDList=[\n");
-            for (Integer groupID : groupIDList)
-                sb.append("\t\t").append(groupID).append("\n");
+            for (Group group : groups)
+                sb.append("\t\t").append(group.getId()).append("\n");
             sb.append('\t');
         }
         return sb.toString();

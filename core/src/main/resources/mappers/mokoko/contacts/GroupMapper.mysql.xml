@@ -21,7 +21,8 @@
                group_type,
                sort_no
         FROM contact_group
-        WHERE user_id = #{userID}
+        WHERE id = #{id}
+          AND user_id = #{userID}
           AND group_type = #{groupType}
     </select>
 
@@ -45,14 +46,17 @@
         <selectKey resultType="int" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        INSERT INTO contact_group (user_id,
-        name,
-        sort_no,
-        group_type)
-        VALUES (#{userID},
-        #{name},
-        #{sortNumber},
-        #{groupType})
+        INSERT INTO contact_group (
+            user_id,
+            name,
+            sort_no,
+            group_type
+        ) VALUES (
+            #{userID},
+            #{name},
+            #{sortNumber},
+            #{groupType}
+        )
     </insert>
 
     <update id="updateGroup">
@@ -72,6 +76,12 @@
         DELETE
         FROM contact_group
         WHERE id = #{id}
+    </delete>
+
+    <delete id="unLinkGroup">
+        DELETE
+        FROM contact_contact_group
+        WHERE group_id = #{id}
     </delete>
 
 </mapper>

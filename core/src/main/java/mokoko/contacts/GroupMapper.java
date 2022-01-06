@@ -18,4 +18,6 @@ public interface GroupMapper {
 
     int deleteGroup(int id);
 
+    int unLinkGroup(int id);
+
 }

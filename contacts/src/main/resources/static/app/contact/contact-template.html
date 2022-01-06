@@ -76,20 +76,20 @@
         <div class="box_menu">
             <ul class="list_menu">
                 <li>
-                    <a class="link_menu link_trash" href="/trash">
+                    <a class="link_menu link_trash" href="trash">
                         <span class="ico_menu"><span class="ico_addressbook ico_trash"></span></span><span
                             class="txt_menu">휴지통</span>
                     </a>
                     <button type="button" class="btn_recycle">비우기</button>
                 </li>
                 <li class="item_pc">
-                    <a class="link_menu" href="/import">
+                    <a class="link_menu" href="import">
                         <span class="ico_menu"><span class="ico_addressbook ico_import"></span></span>
                         <span class="txt_menu">주소록 가져오기</span>
                     </a>
                 </li>
                 <li class="item_pc">
-                    <a class="link_menu" href="/export">
+                    <a class="link_menu" href="export">
                         <span class="ico_menu"><span class="ico_addressbook ico_export"></span></span>
                         <span class="txt_menu">주소록 내보내기</span></a>
                 </li>
@@ -122,7 +122,7 @@
 
 <!-- <li style:'border-top: 0px; padding: 0px'> -->
 <script type="text/template" id="group-item-template">
-    <a class="link_menu" href="/groups/<%- group.id %>">
+    <a class="link_menu" href="groups/<%- group.id %>">
 			<span class="ico_menu">
 				<span class="ico_addressbook ico_group"></span>
 			</span>
@@ -219,7 +219,144 @@
     </div>
 </script>
 
+<script type="text/template" id="contact-list-template">
+    <div class="addressbook_head" style="min-width: initial;">
+        <div class="wrap_tool" style="user-select: none;">
+            <div class="tool_head">
+                <strong class="tit_tool"><em classname="emph_count">0</em>개 선택됨</strong>
+                <div class="item_chk item_all">
+                    <input type="checkbox" id="inpChkAll" name="inpChkAll" class="inp_chk">
+                    <label class="lab_chk" for="inpChkAll">
+                        <span class="ico_addressbook ico_chk"></span>
+                    </label>
+                </div>
+                <button type="button" class="btn_cancel">취소</button>
+            </div>
+            <div class="tool_body">
+                <button type="button" class="btn_tool btn_modify ">
+                    <span class="ico_addressbook ico_modify">수정</span>
+                </button>
+                <div class="box_layer box_group">
+                    <button type="button" class="btn_tool btn_layer">
+                        <span class="ico_addressbook ico_group">그룹</span>
+                        <span class="txt_btn">이동</span>
+                    </button>
+                </div>
+                <button type="submit" class="btn_tool btn_del">
+                    <span class="ico_addressbook ico_del"></span>
+                    <span class="txt_btn">삭제</span>
+                </button>
+            </div>
+            <div class="util_tool">
+                <div class="box_layer box_sort">
+                    <button type="button" class="btn_layer btn_sort">
+                        <span class="ico_addressbook ico_sort">정렬</span>이름순
+                    </button>
+                </div>
+                <button type="button" class="btn_order reverse_on">
+                    <span class="screen_out">순서변경</span>
+                    <span class="ico_addressbook ico_order">오름차순</span>
+                </button>
+            </div>
+        </div>
+        <div class="wrap_search"><strong class="screen_out">검색</strong>
+            <form id="frmSearch" action="#">
+                <fieldset class="fld_addressbook">
+                    <legend class="screen_out">주소록 검색폼</legend>
+                    <div class="box_search  ">
+                        <label for="tfSearch" class="screen_out">검색어 입력</label>
+                        <input maxlength="20" autocomplete="off" type="text"
+                               id="tfSearch" name="tfSearch" class="tf_search" placeholder="주소록 검색">
+                        <button type="button" class="btn_del">
+                            <span class="ico_addressbook ico_del">삭제</span>
+                        </button>
+                        <button type="submit" class="btn_search">
+                            <span class="ico_addressbook ico_search">검색</span>
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+    <div class="addressbook_body">
+        <p class="txt_notice"><span class="ico_addressbook ico_notice">안내</span>연락처는 최대 2만개까지 저장할 수 있습니다.</p>
+        <ul class="list_address list_type1"
+            style="position: relative; height: 162px; will-change: transform; min-width: initial;">
+
+<%      _.each(contactCollection.models, function(contactModel) { %>
+            <li class="_vtScrollPos draggable" draggable="true">
+                <div class="box_profile">
+                    <div class="ico_profile" area-hidden="true">
+                        <span class="txt_profile"
+                              style="background-color: rgb(129, 172, 130);"><%- contactModel.get('lastname') %></span>
+                        <svg class="ico_obj" width="540" height="540px" viewBox="0 0 540 540" version="1.1"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path class="ico_path"
+                                  d="M-30,-30 L570,-30 L570,570 L-30,570 L-30,-30 Z M0,270 C0,468.754 71.251,540 270,540 C468.754,540 540,468.754 540,270 C540,71.251 468.754,0 270,0 C71.251,0 0,78.749 0,270 Z"></path>
+                        </svg>
+                    </div>
+                    <div class="item_chk item_profile">
+                        <input type="checkbox" name="inpAddr" id="inpAddr<%- contactModel.id %>" class="inp_chk"
+                               value="<%- contactModel.id %>">
+                        <label class="lab_chk" for="inpAddr<%- contactModel.id %>">
+                            <span class="ico_addressbook ico_chk"><%- contactModel.get('fullName') %></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="wrap_info">
+                    <div class="box_info">
+                        <div class="inner_info" role="text">
+                            <div class="info_address info_name">
+                                <strong class="screen_out">이름</strong>
+                                <span class="txt_info"><%- contactModel.get('fullName') %></span>
+                            </div>
+                            <div class="info_address info_email" role="text">
+                                <%
+                                    var expansions =  contactModel.get('contactExpansions');
+                                %>
+                                <strong class="screen_out">이메일</strong>
+                                <span class="txt_info"><%- expansions[0].email || '' %></span></div>
+                            <div class="info_address info_phone" role="text">
+                                <strong class="screen_out">전화번호</strong>
+                                <span class="txt_info"><%- expansions[0].phone || '' %></span></div>
+                            <div class="info_group" role="text"><strong class="screen_out">그룹</strong>
+
+                                <div class="wrap_bubble">
+                                <%  var groups = contactModel.get('groups');
+                                    var size = _.size(groups);
+                                    var limit = 2;
+                                    if(size > limit) { %>
+                                        <span class="ico_bubble"><%- groups[0].name + '외 ' + size + '건' %></span>
+                                <%  } else if(size > 0) {
+                                        for (var i = 0; i < size; i++) {
+                                            if (i > limit)
+                                                break; %>
+                                            <span class="ico_bubble"><%- groups[i].name %></span>
+                                <%      }
+                                    } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wrap_fav">
+                    <div class="item_chk item_fav">
+                        <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk">
+                        <label class="lab_chk lab_fav" for="inpFav<%- contactModel.id %>">
+                            <span class="ico_addressbook ico_fav">즐겨찾기 - <%- contactModel.get('fullName') %></span>
+                        </label>
+                    </div>
+                </div>
+            </li>
+<%      }); // _.each(contactCollection.models, function(contactModel)%>
+
+        </ul>
+    </div>
+</script>
+
+
 <script type="text/template" id="content-layout-template">
+    <div id="contactListRegion"></div>
 </script>
 
 <script id="node-template" type="text/template">

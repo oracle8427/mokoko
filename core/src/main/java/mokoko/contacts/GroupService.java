@@ -3,6 +3,7 @@ package mokoko.contacts;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,9 +35,22 @@ public class GroupService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void removeGroupAndMoveContacts(int groupID) {
-        contactService.unLinkGroup(groupID);
+    public void removeGroup(int groupID) {
+        // 그룹에 속해있는 모든 주소록 연결 해제
+        groupMapper.unLinkGroup(groupID);
+
+        // 그룹 삭제
         groupMapper.deleteGroup(groupID);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void removeGroupAndContacts(int groupID) {
+        // 주소록 삭제
+        for (int id : contactService.getIDListAtGroup(groupID))
+            contactService.deleteContact(id);
+
+        // 그룹 삭제
+        removeGroup(groupID);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)

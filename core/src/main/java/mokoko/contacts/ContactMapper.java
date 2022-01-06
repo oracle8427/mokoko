@@ -8,7 +8,11 @@ import java.util.Map;
 @Mapper
 public interface ContactMapper {
 
-    List<Contact> selectContacts();
+    List<Contact> selectAllContacts(String userID);
+
+    List<Contact> selectGroupContacts(Map<String, Object> params);
+
+    List<Integer> selectIDListAtGroup(int groupID);
 
     int selectAllCount(Map<String, Object> params);
 
@@ -16,6 +20,12 @@ public interface ContactMapper {
 
     int selectRecentCount(Map<String, Object> params);
 
-    int deleteGroupID(int groupID);
+    int deleteContact(int id);
+
+    int deleteContactExpansion(int contactID);
+
+    int deleteContactRecent(int contactID);
+
+    int unlinkGroup(int contactID);
 
 }
