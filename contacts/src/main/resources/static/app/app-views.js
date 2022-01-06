@@ -57,4 +57,30 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
         }
     });
 
+    app.OverlayLayer = Backbone.Marionette.ItemView.extend({
+        initialize: function () {
+            this.listenTo(app.vent, 'show:overlay-loading', function () {
+                app.vent.trigger('show:dimmed');
+                this.$el.show();
+            });
+            this.listenTo(app.vent, 'hide:overlay-loading', function () {
+                app.vent.trigger('hide:dimmed');
+                this.$el.hide();
+            });
+        },
+        template: function () {
+            var html, compiledTemplate = app.OverlayLayer.compiledTemplate;
+            if (!compiledTemplate) {
+                html = app.$template.filter('#overlay-template').html();
+                compiledTemplate = _.template(html);
+                app.OverlayLayer.compiledTemplate = compiledTemplate;
+            }
+            html = compiledTemplate();
+            return html;
+        },
+        onRender: function () {
+            this.$el.appendTo(app.rootElement);
+        }
+    });
+
 });
