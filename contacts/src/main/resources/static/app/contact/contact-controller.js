@@ -27,25 +27,23 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 });
                 app.contentRegion.show(this.contentLayout);
             },
-            contacts: function (groupID, params) {
-                if (_.size(contact.groupCollection) === 0) {
-                    this.listenToOnce(contact.groupCollection, 'sync', function () {
-                        this.contacts(groupID, params);
-                    });
+            contacts: function () {
+                contact.contactCollection.fetch({
+                    silent: true
+                });
+            },
+            groupContacts: function (groupID, params) {
+                if (!groupID)
                     return;
-                }
 
-                var options = {
+                params = _.extend({'groupID': groupID}, params)
+                contact.contactCollection.fetch({
+                    silent: true,
+                    url: contact.contactCollection.url + '?' + $.param(params),
                     success: function (collection, models, xhr) {
 
                     }
-                }
-
-                if (groupID) {
-                    params = _.extend({'groupID': groupID}, params)
-                    options['url'] = contact.contactCollection.url + '?' + $.param(params);
-                }
-                contact.contactCollection.fetch(options);
+                });
             }
         });
 

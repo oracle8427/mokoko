@@ -30,14 +30,14 @@
         <div class="box_menu">
             <ul class="list_menu">
                 <li class="item_current">
-                    <a class="link_menu" href="/" id="all">
+                    <a class="link_menu" href="" id="all">
                         <span class="ico_menu"><span class="ico_addressbook ico_all"></span></span>
                         <span class="txt_menu">전체</span>
                         <span class="num_count">1</span>
                     </a>
                 </li>
                 <li class="">
-                    <a class="link_menu" href="/recently" id="recently">
+                    <a class="link_menu" href="recently" id="recently">
                         <span class="ico_menu">
                             <span class="ico_addressbook ico_recent"></span>
                         </span>
@@ -47,7 +47,7 @@
                 </li>
 
                 <li class="">
-                    <a class="link_menu" href="/important" id="important">
+                    <a class="link_menu" href="important" id="important">
                         <span class="ico_menu"><span class="ico_addressbook ico_star"></span></span>
                         <span class="txt_menu">중요한 연락처</span>
                         <span class="num_count">0</span>
@@ -196,12 +196,38 @@
     </div>
 </script>
 
+<script type="text/template" id="confirm-layer-template">
+    <div class="layer_alert" style="z-index: 10004;">
+        <div class="layer_head"><strong class="tit_layer tit_alert"></strong></div>
+        <div class="layer_body">
+            <div class="wrap_alert">
+                <p class="txt_alert">
+                    <% _.each(data.messages, function(message) { %>
+                    <span><%- message %><br></span>
+                    <% }) %>
+                </p>
+            </div>
+            <div class="wrap_btn">
+                <button type="button" class="btn_comm btn_type2">확인</button>
+                <button type="button" class="btn_comm btn_type1">취소</button>
+            </div>
+        </div>
+        <div class="layer_foot">
+            <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+        </div>
+    </div>
+</script>
+
 <script type="text/template" id="alert-layer-template">
     <div class="layer_alert" style="z-index: 10004;">
         <div class="layer_head"><strong class="tit_layer tit_alert"></strong></div>
         <div class="layer_body">
-            <div class="wrap_alert"><p class="txt_alert">
-                <span><%- data.message %><br></span></p>
+            <div class="wrap_alert">
+                <p class="txt_alert">
+                <% _.each(data.messages, function(message) { %>
+                    <span><%- message %><br></span>
+                <% }) %>
+                </p>
             </div>
             <div class="wrap_btn">
                 <button type="button" class="btn_comm btn_type2">확인</button>
@@ -219,144 +245,599 @@
     </div>
 </script>
 
+<script type="text/template" id="contact-list-search-template">
+    <div class="wrap_tool" style="user-select: none;">
+        <div class="tool_head">
+            <strong class="tit_tool"><em class="emph_count">0</em>개 선택됨</strong>
+            <div class="item_chk item_all">
+                <input type="checkbox" id="inpChkAll" name="inpChkAll" class="inp_chk">
+                <label class="lab_chk" for="inpChkAll">
+                    <span class="ico_addressbook ico_chk"></span>
+                </label>
+            </div>
+            <button type="button" class="btn_cancel">취소</button>
+        </div>
+        <div class="tool_body">
+            <button type="button" class="btn_tool btn_modify ">
+                <span class="ico_addressbook ico_modify">수정</span>
+            </button>
+            <div class="box_layer box_group box_open">
+                <button type="button" id="move_group" class="btn_tool btn_layer">
+                    <span class="ico_addressbook ico_group">그룹</span>
+                    <span class="txt_btn">이동</span>
+                </button>
+                <div id="groupSettingsRegion"></div>
+            </div>
+            <button type="submit" class="btn_tool btn_del">
+                <span class="ico_addressbook ico_del"></span>
+                <span class="txt_btn">삭제</span>
+            </button>
+        </div>
+        <div class="util_tool">
+            <div class="box_layer box_sort" id="sort_box_layer">
+                <button type="button" class="btn_layer btn_sort">
+                    <span class="ico_addressbook ico_sort">정렬</span>
+                    <span id="sortField" data-field="fullName">이름순</span>
+                </button>
+                <div class="layer_g">
+                    <div class="inner_layer"><strong class="screen_out">정렬 선택 레이어</strong>
+                        <ul class="list_chk">
+                            <li>
+                                <div class="item_chk">
+                                    <input type="radio" id="inpSort1" name="inpSort" class="inp_chk" value="fullName"
+                                           checked="">
+                                    <label class="lab_chk" for="inpSort1">이름순<span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item_chk">
+                                    <input type="radio" id="inpSort2" name="inpSort" class="inp_chk" value="email">
+                                    <label class="lab_chk" for="inpSort2">이메일순<span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn_order reverse_on">
+                <span class="screen_out">순서변경</span>
+                <span class="ico_addressbook ico_order">오름차순</span>
+            </button>
+        </div>
+    </div>
+    <div class="wrap_search"><strong class="screen_out">검색</strong>
+        <form id="frmSearch" action="#">
+            <fieldset class="fld_addressbook">
+                <legend class="screen_out">주소록 검색폼</legend>
+                <div class="box_search  ">
+                    <label for="tfSearch" class="screen_out">검색어 입력</label>
+                    <input maxlength="20" autocomplete="off" type="text"
+                           id="tfSearch" name="tfSearch" class="tf_search" placeholder="주소록 검색">
+                    <button type="button" class="btn_del">
+                        <span class="ico_addressbook ico_del">삭제</span>
+                    </button>
+                    <button type="button" class="btn_search">
+                        <span class="ico_addressbook ico_search">검색</span>
+                    </button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+
+</script>
+
 <script type="text/template" id="contact-list-template">
-    <div class="addressbook_head" style="min-width: initial;">
-        <div class="wrap_tool" style="user-select: none;">
-            <div class="tool_head">
-                <strong class="tit_tool"><em classname="emph_count">0</em>개 선택됨</strong>
-                <div class="item_chk item_all">
-                    <input type="checkbox" id="inpChkAll" name="inpChkAll" class="inp_chk">
-                    <label class="lab_chk" for="inpChkAll">
-                        <span class="ico_addressbook ico_chk"></span>
+    <p class="txt_notice"><span class="ico_addressbook ico_notice">안내</span>연락처는 최대 2만개까지 저장할 수 있습니다.</p>
+    <ul class="list_address list_type1"
+        style="position: relative; height: 162px; will-change: transform; min-width: initial;">
+
+<%  _.each(contactCollection.models, function(contactModel) { %>
+        <li class="_vtScrollPos draggable" draggable="true">
+            <div class="box_profile">
+                <div class="ico_profile" area-hidden="true">
+                    <span class="txt_profile"
+                          style="background-color: rgb(129, 172, 130);"><%- contactModel.get('lastname') %></span>
+                    <svg class="ico_obj" width="540" height="540px" viewBox="0 0 540 540" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path class="ico_path"
+                              d="M-30,-30 L570,-30 L570,570 L-30,570 L-30,-30 Z M0,270 C0,468.754 71.251,540 270,540 C468.754,540 540,468.754 540,270 C540,71.251 468.754,0 270,0 C71.251,0 0,78.749 0,270 Z"></path>
+                    </svg>
+                </div>
+                <div class="item_chk item_profile">
+                    <input type="checkbox" name="inpAddr" id="inpAddr<%- contactModel.id %>" class="inp_chk"
+                           value="<%- contactModel.id %>">
+                    <label class="lab_chk" for="inpAddr<%- contactModel.id %>">
+                        <span class="ico_addressbook ico_chk"><%- contactModel.get('fullName') %></span>
                     </label>
                 </div>
-                <button type="button" class="btn_cancel">취소</button>
             </div>
-            <div class="tool_body">
-                <button type="button" class="btn_tool btn_modify ">
-                    <span class="ico_addressbook ico_modify">수정</span>
-                </button>
-                <div class="box_layer box_group">
-                    <button type="button" class="btn_tool btn_layer">
-                        <span class="ico_addressbook ico_group">그룹</span>
-                        <span class="txt_btn">이동</span>
-                    </button>
+            <div class="wrap_info">
+                <div class="box_info">
+                    <div class="inner_info" role="text">
+                        <div class="info_address info_name">
+                            <strong class="screen_out">이름</strong>
+                            <span class="txt_info"><%- contactModel.get('fullName') %></span>
+                        </div>
+                        <div class="info_address info_email" role="text">
+                        <% var expansions =  contactModel.get('contactExpansions'); %>
+                            <strong class="screen_out">이메일</strong>
+                            <span class="txt_info"><%- expansions[0].email || '' %></span></div>
+                        <div class="info_address info_phone" role="text">
+                            <strong class="screen_out">전화번호</strong>
+                            <span class="txt_info"><%- expansions[0].phone || '' %></span></div>
+                        <div class="info_group" role="text"><strong class="screen_out">그룹</strong>
+                            <div class="wrap_bubble">
+                            <%  var groups = contactModel.get('groups');
+                                var size = _.size(groups);
+                                var limit = 2;
+                                if(size > limit) { %>
+                                    <span class="ico_bubble"><%- groups[0].name + '외 ' + size + '건' %></span>
+                            <%  } else if(size > 0) {
+                                    for (var i = 0; i < size; i++) {
+                                        if (i > limit)
+                                            break; %>
+                                        <span class="ico_bubble"><%- groups[i].name %></span>
+                            <%      }
+                                } %>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn_tool btn_del">
-                    <span class="ico_addressbook ico_del"></span>
-                    <span class="txt_btn">삭제</span>
-                </button>
             </div>
-            <div class="util_tool">
-                <div class="box_layer box_sort">
-                    <button type="button" class="btn_layer btn_sort">
-                        <span class="ico_addressbook ico_sort">정렬</span>이름순
-                    </button>
+            <div class="wrap_fav">
+                <div class="item_chk item_fav">
+                    <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk">
+                    <label class="lab_chk lab_fav" for="inpFav<%- contactModel.id %>">
+                        <span class="ico_addressbook ico_fav">즐겨찾기 - <%- contactModel.get('fullName') %></span>
+                    </label>
                 </div>
-                <button type="button" class="btn_order reverse_on">
-                    <span class="screen_out">순서변경</span>
-                    <span class="ico_addressbook ico_order">오름차순</span>
-                </button>
             </div>
+        </li>
+<%  }); // _.each(contactCollection.models, function(contactModel)%>
+
+    </ul>
+</script>
+
+<script type="text/template" id="no-search-result-template">
+    <p class="txt_notice">
+        <span class="ico_addressbook ico_notice">안내</span>연락처는 최대 2만개까지 저장할 수 있습니다.</p>
+    <div class="wrap_blank">
+        <div class="inner_blank">
+            <img src="img/blank/img_blank07.png" class="img_blank" alt="">
+            <p class="desc_g">검색 결과가 없습니다.</p>
         </div>
-        <div class="wrap_search"><strong class="screen_out">검색</strong>
-            <form id="frmSearch" action="#">
+    </div>
+</script>
+
+<script type="text/template" id="group-settings-template">
+
+        <strong class="tit_layer ">그룹설정</strong>
+        <div class="inner_layer">
+            <ul class="list_chk list_chk3">
+            <%
+                var groups = _.map(contactModels[0].get('groups'), 'id');
+                var intersection;
+                if (contactModels.length > 1) {
+                    for(var i = 1; i < contactModels.length; i++) {
+                        intersection = _.intersection(intersection ? intersection : groups, contactModels[i].get('groups'));
+                    }
+                }
+
+                _.each(groupCollection.models, function(groupModel) { console.log(_.contains(groups, groupModel.id));%>
+                <li>
+                    <div class="item_chk">
+                        <input type="checkbox" name="inpToolGroup" class="inp_chk"
+                               id="inpToolGroup<%- groupModel.id %>" value="<%- groupModel.id %>"
+                               <%- _.contains(groups, groupModel.id) ? ' checked="checked"' : '' %> />
+                        <label class="lab_chk" for="inpToolGroup<%- groupModel.id %>">
+                            <span class="ico_addressbook ico_group"></span><%- groupModel.get('name') %><span class="ico_addressbook ico_chk"></span>
+                        </label>
+                    </div>
+                </li>
+            <% }) %>
+            </ul>
+        </div>
+        <button type="button" class="btn_new">
+            <span class="ico_addressbook ico_new"></span>새 그룹 만들기</button>
+        <button type="button" class="btn_close save">저장</button>
+</script>
+
+<script type="text/template" id="contact-layer-template">
+    <div class="layer_comm layer_type2" style="user-select: none;">
+        <div class="layer_head"><strong class="tit_layer">연락처 추가</strong></div>
+        <div class="layer_body">
+            <form id="frmWrite" action="#">
                 <fieldset class="fld_addressbook">
-                    <legend class="screen_out">주소록 검색폼</legend>
-                    <div class="box_search  ">
-                        <label for="tfSearch" class="screen_out">검색어 입력</label>
-                        <input maxlength="20" autocomplete="off" type="text"
-                               id="tfSearch" name="tfSearch" class="tf_search" placeholder="주소록 검색">
-                        <button type="button" class="btn_del">
-                            <span class="ico_addressbook ico_del">삭제</span>
+                    <legend class="screen_out">연락처 추가 입력 폼</legend>
+                    <div class="address_body address_write">
+                        <div class="bundle_address">
+                            <div class="info_address info_name">
+                                <strong class="tit_info"><span class="ico_addressbook ico_name">이름</span></strong>
+                                <div class="box_tf box_name1 ">
+                                    <input autocomplete="off" type="text" id="tfWriteFirstName" name="tfWriteName"
+                                           title="이름" class="tf_g" placeholder="이름(필수)">
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                                <div class="box_tf ">
+                                    <input autocomplete="off" type="text" id="tfWriteLastName" name="tfWriteName"
+                                           title="성" class="tf_g" placeholder="성">
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                                <div class="item_chk item_fav">
+                                    <input type="checkbox" id="inpWriteFav" name="inpWriteFav" class="inp_chk">
+                                    <label class="lab_chk lab_fav" for="inpWriteFav">
+                                        <span class="ico_addressbook ico_fav">즐겨찾기 선택하기</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteNick">
+                                        <span class="ico_addressbook ico_nick">닉네임</span>
+                                    </label>
+                                </strong>
+                                <div class="box_tf">
+                                    <input autocomplete="off" type="text" id="tfWriteNick" name="tfWriteNick"
+                                           title="닉네임" class="tf_g" placeholder="닉네임" >
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="info_address">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteMail0">
+                                        <span class="ico_addressbook ico_email">이메일</span>
+                                    </label>
+                                </strong>
+                                <div class="box_tf">
+                                    <input autocomplete="off" type="text" id="tfWriteMail0" name="tfWriteMail2"
+                                           title="이메일" class="tf_g" placeholder="이메일" >
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                                <button type="button" class="btn_addition">
+                                    <span class="ico_addressbook ico_addition">추가</span>
+                                </button>
+                            </div>
+
+                            <div class="info_address">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWritePhone0">
+                                        <span class="ico_addressbook ico_phone">전화번호</span>
+                                    </label>
+                                </strong>
+                                <div class="box_info">
+                                    <div class="box_tf">
+                                        <input autocomplete="off" type="text" id="tfWritePhone0" name="tfWritePhone"
+                                               title="전화번호" class="tf_g" placeholder="전화번호">
+                                        <button type="button" class="btn_del">
+                                            <span class="ico_addressbook ico_del">삭제</span>
+                                        </button>
+                                    </div>
+                                    <div class="opt_comm">
+                                        <button type="button" class="btn_opt">
+                                            <span class="screen_out">선택됨</span>집
+                                            <span class="ico_addressbook ico_arr"></span>
+                                        </button>
+                                        <div class="dimm_layer"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn_addition">
+                                    <span class="ico_addressbook ico_addition">추가</span>
+                                </button>
+                            </div>
+
+                            <div class="info_address">
+                                <strong class="tit_info"><span class="ico_addressbook ico_group">그룹</span></strong>
+                                <div class="opt_comm opt_group">
+                                    <button title="그룹설정" type="button" class="btn_opt">
+                                        <span class="screen_out">선택됨</span>그룹설정
+                                        <span class="ico_addressbook ico_arr"></span>
+                                    </button>
+                                    <div class="layer_g layer_group layer_type3 " style="user-select: none;">
+                                        <strong class="tit_layer">그룹설정</strong>
+                                        <div class="inner_layer">
+                                            <ul class="list_chk list_chk3">
+                                                <li>
+                                                    <div class="item_chk">
+                                                        <input type="checkbox" id="inpWriteGroup116760" class="inp_chk"
+                                                               name="inpWriteGroup">
+                                                        <label class="lab_chk"
+                                                               for="inpWriteGroup116760">test2<span class="ico_addressbook ico_chk"></span></label>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="item_chk">
+                                                        <input type="checkbox" id="inpWriteGroup116762" class="inp_chk"
+                                                               name="inpWriteGroup">
+                                                        <label class="lab_chk" for="inpWriteGroup116762">1228 02<span class="ico_addressbook ico_chk"></span></label>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="item_chk">
+                                                        <input type="checkbox" id="inpWriteGroup110255" class="inp_chk"
+                                                               name="inpWriteGroup" >
+                                                        <label class="lab_chk" for="inpWriteGroup110255">algo<span class="ico_addressbook ico_chk"></span></label>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="item_chk">
+                                                        <input type="checkbox" id="inpWriteGroup117053" class="inp_chk"
+                                                             name="inpWriteGroup">
+                                                        <label class="lab_chk" for="inpWriteGroup117053">awefawef<span class="ico_addressbook ico_chk"></span></label>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="item_chk">
+                                                        <input type="checkbox" id="inpWriteGroup117054" class="inp_chk"
+                                                               name="inpWriteGroup">
+                                                        <label class="lab_chk" for="inpWriteGroup117054">fwaewafeaf<span class="ico_addressbook ico_chk"></span></label>
+                                                    </div>
+                                                </li>
+                                                <li>
+                                                    <div class="item_chk">
+                                                        <input type="checkbox" id="inpWriteGroup117062" class="inp_chk"
+                                                               name="inpWriteGroup">
+                                                        <label class="lab_chk" for="inpWriteGroup117062">111<span class="ico_addressbook ico_chk"></span></label>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <button type="button" class="btn_new"><span
+                                                class="ico_addressbook ico_new"></span>새 그룹 만들기
+                                        </button>
+                                        <button type="button" class="btn_close">저장</button>
+                                    </div>
+                                    <div class="dimm_layer"></div>
+                                </div>
+                            </div>
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWritebirth">
+                                        <span class="ico_addressbook ico_birth">생일</span>
+                                    </label>
+                                </strong>
+                                <div class="box_tf">
+                                    <input autocomplete="off" type="text" id="tfWritebirth" name="tfWritebirth"
+                                           class="tf_g" placeholder="생일" title="생일">
+                                    <button type="button" class="btn_del">
+                                        <span  class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteDay1">
+                                        <span class="ico_addressbook ico_day">기념일</span>
+                                    </label>
+                                </strong>
+                                <div class="box_info">
+                                    <div class="box_tf">
+                                        <input autocomplete="off" type="text" id="tfWriteDay1" class="tf_g" name="tfWriteDay"
+                                               title="날짜" placeholder="날짜">
+                                        <button type="button" class="btn_del">
+                                            <span class="ico_addressbook ico_del">삭제</span>
+                                        </button>
+                                    </div>
+                                    <div class="opt_comm">
+                                        <button type="button" class="btn_opt">
+                                            <span class="screen_out">선택됨</span>기념일<span class="ico_addressbook ico_arr"></span>
+                                        </button>
+                                        <div class="layer_g layer_opt">
+                                            <div class="inner_layer">
+                                                <strong class="screen_out">선택옵션</strong>
+                                                <ul class="list_chk">
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptDay1200" name="inpOptDay0" class="inp_chk" checked="">
+                                                            <label class="lab_chk" for="inpOptDay1200">기념일<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptDay1201" name="inpOptDay0" class="inp_chk">
+                                                            <label class="lab_chk" for="inpOptDay1201">기타<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="dimm_layer"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn_addition">
+                                    <span class="ico_addressbook ico_addition">항목추가</span>
+                                </button>
+                            </div>
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteLink1">
+                                        <span class="ico_addressbook ico_link">링크</span>
+                                    </label>
+                                </strong>
+                                <div class="box_info">
+                                    <div class="box_tf">
+                                        <input autocomplete="off" type="text" id="tfWriteLink1" name="tfWriteLink"
+                                               class="tf_g" placeholder="http://" title="SNS">
+                                        <button type="button" class="btn_del">
+                                            <span class="ico_addressbook ico_del">삭제</span>
+                                        </button>
+                                    </div>
+                                    <div class="opt_comm">
+                                        <button type="button" class="btn_opt">
+                                            <span class="screen_out">선택됨</span>블로그<span class="ico_addressbook ico_arr"></span>
+                                        </button>
+
+                                        <div class="layer_g layer_opt">
+                                            <div class="inner_layer">
+                                                <strong class="screen_out">선택옵션</strong>
+                                                <ul class="list_chk">
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptLink100" name="inpOptLink0" class="inp_chk" checked="">
+                                                            <label class="lab_chk" for="inpOptLink100">블로그<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptLink101" name="inpOptLink0" class="inp_chk">
+                                                            <label class="lab_chk" for="inpOptLink101">홈페이지<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptLink102" name="inpOptLink0" class="inp_chk">
+                                                            <label class="lab_chk" for="inpOptLink102">기타<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="dimm_layer"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn_addition">
+                                    <span class="ico_addressbook ico_addition">추가</span>
+                                </button>
+                            </div>
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteMsn1">
+                                        <span class="ico_addressbook ico_msn">메신저</span>
+                                    </label>
+                                </strong>
+                                <div class="box_tf">
+                                    <input autocomplete="off" type="text" id="tfWriteMsn1" name="tfWriteMsn" class="tf_g"
+                                           title="메신저" placeholder="메신저">
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                                <button type="button" class="btn_addition">
+                                    <span class="ico_addressbook ico_addition">추가</span>
+                                </button>
+                            </div>
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteLocation1">
+                                        <span class="ico_addressbook ico_location">주소</span>
+                                    </label>
+                                </strong>
+                                <div class="box_info">
+                                    <div class="box_tf">
+                                        <input autocomplete="off" type="text" id="tfWriteLocation1"
+                                               name="tfWriteLocation" title="주소" class="tf_g" placeholder="주소">
+                                        <button type="button" class="btn_del">
+                                            <span class="ico_addressbook ico_del">삭제</span>
+                                        </button>
+                                    </div>
+                                    <div class="opt_comm">
+                                        <button type="button" class="btn_opt">
+                                            <span class="screen_out">선택됨</span>집<span class="ico_addressbook ico_arr"></span>
+                                        </button>
+                                        <div class="layer_g layer_opt">
+                                            <div class="inner_layer"><strong class="screen_out">선택옵션</strong>
+                                                <ul class="list_chk">
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptLocation100"
+                                                                   name="inpOptLocation0" class="inp_chk" checked="">
+                                                            <label class="lab_chk" for="inpOptLocation100">집<span class="ico_addressbook ico_chk"></span></label></div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptLocation101"
+                                                                   name="inpOptLocation0" class="inp_chk">
+                                                            <label class="lab_chk" for="inpOptLocation101">직장<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                    <li>
+                                                        <div class="item_chk">
+                                                            <input type="radio" id="inpOptLocation102" class="inp_chk"
+                                                                   name="inpOptLocation0">
+                                                            <label class="lab_chk" for="inpOptLocation102">기타<span class="ico_addressbook ico_chk"></span></label>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="dimm_layer"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn_addition">
+                                    <span class="ico_addressbook ico_addition">추가</span>
+                                </button>
+                            </div>
+                            <div class="info_address info_more">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWriteOffice">
+                                        <span class="ico_addressbook ico_office">소속</span>
+                                    </label>
+                                </strong>
+                                <div class="box_tf">
+                                    <input type="text" id="tfWriteOffice" name="tfWriteOffice" class="tf_g" title="소속"
+                                           placeholder="소속" autocomplete="off">
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                                <div class="box_tf">
+                                    <input type="text" id="tfWriteClass" name="tfNewClass" class="tf_g" title="직위"
+                                           placeholder="직위" autocomplete="off">
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="info_address info_memo">
+                                <strong class="tit_info">
+                                    <label class="lab_info" for="tfWritMemo">
+                                        <span class="ico_addressbook ico_meno">메모</span>
+                                    </label>
+                                </strong>
+                                <div class="box_tf">
+                                    <textarea id="tfWritMemo" name="tfWritMemo" class="tf_g" placeholder="메모"
+                                              title="메모" style="min-height: 21px; resize: none; background-color: transparent; height: 21px;"></textarea>
+                                    <button type="button" class="btn_del">
+                                        <span class="ico_addressbook ico_del">삭제</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn_addition2">
+                            <span class="ico_addressbook ico_addition2"></span>항목추가</button>
+                        <button type="button" class="btn_more">더보기<span class="ico_addressbook ico_arr"></span>
                         </button>
-                        <button type="submit" class="btn_search">
-                            <span class="ico_addressbook ico_search">검색</span>
+                    </div>
+                    <div class="wrap_btn">
+                        <button type="submit" class="btn_comm btn_type2">저장</button>
+                        <button type="button" class="btn_comm btn_type1">
+                            <span class="txt_btn">취소</span>
+                            <span class="ico_addressbook ico_cancel"></span>
                         </button>
                     </div>
                 </fieldset>
             </form>
         </div>
-    </div>
-    <div class="addressbook_body">
-        <p class="txt_notice"><span class="ico_addressbook ico_notice">안내</span>연락처는 최대 2만개까지 저장할 수 있습니다.</p>
-        <ul class="list_address list_type1"
-            style="position: relative; height: 162px; will-change: transform; min-width: initial;">
-
-<%      _.each(contactCollection.models, function(contactModel) { %>
-            <li class="_vtScrollPos draggable" draggable="true">
-                <div class="box_profile">
-                    <div class="ico_profile" area-hidden="true">
-                        <span class="txt_profile"
-                              style="background-color: rgb(129, 172, 130);"><%- contactModel.get('lastname') %></span>
-                        <svg class="ico_obj" width="540" height="540px" viewBox="0 0 540 540" version="1.1"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path class="ico_path"
-                                  d="M-30,-30 L570,-30 L570,570 L-30,570 L-30,-30 Z M0,270 C0,468.754 71.251,540 270,540 C468.754,540 540,468.754 540,270 C540,71.251 468.754,0 270,0 C71.251,0 0,78.749 0,270 Z"></path>
-                        </svg>
-                    </div>
-                    <div class="item_chk item_profile">
-                        <input type="checkbox" name="inpAddr" id="inpAddr<%- contactModel.id %>" class="inp_chk"
-                               value="<%- contactModel.id %>">
-                        <label class="lab_chk" for="inpAddr<%- contactModel.id %>">
-                            <span class="ico_addressbook ico_chk"><%- contactModel.get('fullName') %></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="wrap_info">
-                    <div class="box_info">
-                        <div class="inner_info" role="text">
-                            <div class="info_address info_name">
-                                <strong class="screen_out">이름</strong>
-                                <span class="txt_info"><%- contactModel.get('fullName') %></span>
-                            </div>
-                            <div class="info_address info_email" role="text">
-                                <%
-                                    var expansions =  contactModel.get('contactExpansions');
-                                %>
-                                <strong class="screen_out">이메일</strong>
-                                <span class="txt_info"><%- expansions[0].email || '' %></span></div>
-                            <div class="info_address info_phone" role="text">
-                                <strong class="screen_out">전화번호</strong>
-                                <span class="txt_info"><%- expansions[0].phone || '' %></span></div>
-                            <div class="info_group" role="text"><strong class="screen_out">그룹</strong>
-
-                                <div class="wrap_bubble">
-                                <%  var groups = contactModel.get('groups');
-                                    var size = _.size(groups);
-                                    var limit = 2;
-                                    if(size > limit) { %>
-                                        <span class="ico_bubble"><%- groups[0].name + '외 ' + size + '건' %></span>
-                                <%  } else if(size > 0) {
-                                        for (var i = 0; i < size; i++) {
-                                            if (i > limit)
-                                                break; %>
-                                            <span class="ico_bubble"><%- groups[i].name %></span>
-                                <%      }
-                                    } %>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="wrap_fav">
-                    <div class="item_chk item_fav">
-                        <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk">
-                        <label class="lab_chk lab_fav" for="inpFav<%- contactModel.id %>">
-                            <span class="ico_addressbook ico_fav">즐겨찾기 - <%- contactModel.get('fullName') %></span>
-                        </label>
-                    </div>
-                </div>
-            </li>
-<%      }); // _.each(contactCollection.models, function(contactModel)%>
-
-        </ul>
+        <div class="layer_foot">
+            <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+        </div>
     </div>
 </script>
 
-
 <script type="text/template" id="content-layout-template">
+    <div id="contactListSearchRegion"></div>
     <div id="contactListRegion"></div>
+    <div id="contactLayerRegion"></div>
 </script>
 
 <script id="node-template" type="text/template">

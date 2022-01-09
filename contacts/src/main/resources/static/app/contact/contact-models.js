@@ -27,6 +27,60 @@ define(['app'], function (app) {
             model: contact.ContactModel,
             initialize: function (models, options) {
                 Backbone.Collection.prototype.initialize.apply(this, arguments);
+            },
+            sort: function (sortField, sortOrder, options) {
+                app.debug('contact.ContactCollection.sort(' + sortField + ', ', sortOrder + ')', options);
+                if (!sortField)
+                    return;
+                if (!sortOrder)
+                    sortOrder = 'ASC'
+
+                if ('email' === sortField) {
+                    this.comparator = (sortOrder === 'ASC') ?
+                        function (m1, m2) {
+                            try {
+                                if (m1.get('contactExpansions')[0][sortField] > m2.get('contactExpansions')[0][sortField]) return 1;
+                                if (m2.get('contactExpansions')[0][sortField] > m1.get('contactExpansions')[0][sortField]) return -1;
+                            } catch (e) {
+                            }
+                            return 0;
+                        } :
+                        function (m1, m2) {
+                            try {
+                                if (m1.get('contactExpansions')[0][sortField] > m2.get('contactExpansions')[0][sortField]) return -1;
+                                if (m2.get('contactExpansions')[0][sortField] > m1.get('contactExpansions')[0][sortField]) return 1;
+                            } catch (e) {
+                            }
+                            return 0;
+                        };
+                } else {
+                    this.comparator = (sortOrder === 'ASC') ?
+                        function (m1, m2) {
+                            if (m1.get(sortField) > m2.get(sortField)) return 1;
+                            if (m2.get(sortField) > m1.get(sortField)) return -1;
+                            return 0;
+                        } :
+                        function (m1, m2) {
+                            if (m1.get(sortField) > m2.get(sortField)) return -1;
+                            if (m2.get(sortField) > m1.get(sortField)) return 1;
+                            return 0;
+                        };
+                }
+                Backbone.Collection.prototype.sort.apply(this, options);
+            },
+            search: function (keyword) {
+                return _.filter(this.models, function (model) {
+                    return model.get('fullName').indexOf(keyword) > -1 ||
+                        function () {
+                            var expansions = model.get('contactExpansions');
+                            for (var i = 0; i < expansions.length; i++) {
+                                if (expansions[i].email.indexOf(keyword) > -1 ||
+                                    expansions[i].phone.indexOf(keyword) > -1)
+                                    return true;
+                            }
+                            return false;
+                        }();
+                });
             }
         });
 

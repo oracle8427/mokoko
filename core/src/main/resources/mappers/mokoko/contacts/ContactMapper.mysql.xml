@@ -83,13 +83,14 @@
             ORDER BY c.sort_no
         ) t
         LEFT JOIN (
-            SELECT group_id, ccg.contact_id, name
+            SELECT group_id, ccg.contact_id, name, group_type
             FROM contact_group cg
                 INNER JOIN contact_contact_group ccg
                     ON cg.id = ccg.group_id
             WHERE user_id = #{userID}
         ) cg
             ON id = cg.contact_id
+        WHERE group_type <![CDATA[ < ]]> 2
     </select>
 
     <select id="selectGroupContacts" resultMap="ContactResultMap">
@@ -114,7 +115,7 @@
                         ON cg.id = ccg.group_id
                 WHERE  user_id = #{userID}
             ) cg
-                ON contacts.id = cg.contact_id;
+                ON contacts.id = cg.contact_id
     </select>
 
     <select id="selectIDListAtGroup" resultType="int">
@@ -127,8 +128,17 @@
 
     <select id="selectAllCount" resultType="int">
         SELECT COUNT(*)
-        FROM contact
-        WHERE user_id = #{userID}
+        FROM (
+            SELECT c.id
+            FROM contact c
+                LEFT JOIN contact_contact_group ccg
+                    ON c.id = ccg.contact_id
+                INNER JOIN contact_group cg
+                    ON 	ccg.group_id = cg.id
+            WHERE c.user_id = #{userID}
+                AND cg.group_type <![CDATA[ < ]]> 2
+            GROUP BY c.id
+        ) A
     </select>
 
     <select id="selectImportantCount" resultType="int">
@@ -169,5 +179,22 @@
         FROM contact_contact_group
         WHERE contact_id = #{contactID}
     </delete>
+
+    <delete id="unlinkAllGroup">
+        DELETE
+        FROM contact_contact_group
+        WHERE contact_id in
+        <foreach collection="idList" item="id" index="index" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <insert id="moveToGroup">
+        INSERT INTO contact_contact_group(contact_id, group_id)
+        VALUES
+        <foreach collection="idList" item="id" index="index" separator="," >
+            (#{id}, #{groupID})
+        </foreach>
+    </insert>
 
 </mapper>

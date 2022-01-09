@@ -13,6 +13,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.listenTo(app.vent, 'show:group-layer', this.showGroupLayer);
                 this.listenTo(app.vent, 'show:group-remove-layer', this.showGroupRemoveLayer);
                 this.listenTo(app.vent, 'show:alert-layer', this.showAlertLayer);
+                this.listenTo(app.vent, 'show:confirm-layer', this.showConfirmLayer);
                 this.listenTo(app.vent, 'show:toast-layer', this.showToastLayer);
             },
             template: function () {
@@ -38,6 +39,20 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.$el.find('button.btn_new:first').click(function (event) {
                     event.preventDefault() && event.stopPropagation();
                     app.vent.trigger('show:group-layer');
+                });
+
+                var $items = this.$el.find('ul.list_menu:first li');
+                $items.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    $items.removeClass('item_current');
+                    var $this = $(this);
+                    $this.addClass('item_current');
+                    location.hash = ('#' + $this.find('a.link_menu').attr('href') || '');
+                });
+
+                this.$el.find('button.btn_add').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    app.vent.trigger('show:contact-layer');
                 });
             },
             showGroups: function () {
@@ -70,6 +85,13 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
                 this.alertLayerRegion.show(alertLayerView);
                 alertLayerView.$el.appendTo(app.rootElement);
+            },
+            showConfirmLayer: function (attributes) {
+                var confirmLayerView = new contact.ConfirmLayerView({
+                    model: new Backbone.Model(attributes)
+                });
+                this.alertLayerRegion.show(confirmLayerView);
+                confirmLayerView.$el.appendTo(app.rootElement);
             },
             showToastLayer: function (attributes) {
                 var toastLayerView = new contact.ToastLayerView({
@@ -234,14 +256,14 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     var groupName = $groupName.val().trim();
                     if (!groupName) {
                         app.vent.trigger('show:alert-layer', {
-                            message: '그룹명을 입력해주세요.'
+                            messages: ['그룹명을 입력해주세요.']
                         });
                         return false;
                     }
 
                     if (contact.groupCollection.findGroupModel('name', groupName)) {
                         app.vent.trigger('show:alert-layer', {
-                            message: '주소록에 동일한 그룹명이 존재합니다.'
+                            messages: ['주소록에 동일한 그룹명이 존재합니다.']
                         });
                         return false;
                     }
@@ -261,8 +283,6 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
                     self.groupModel.set(attributes);
                     contact.groupCollection.create(self.groupModel, options);
-
-                    console.log(self.groupModel);
                 });
             },
             onShow: function () {
@@ -320,6 +340,34 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             }
         });
 
+        contact.ConfirmLayerView = Backbone.Marionette.ItemView.extend({
+            template: function (data) {
+                var html = contact.$template.filter('#confirm-layer-template').html();
+                var compiledTemplate = _.template(html);
+                html = compiledTemplate({
+                    data: data,
+                });
+                return html;
+            },
+            onRender: function () {
+                var self = this;
+                var $closeButtons = this.$el.find('button.btn_close').add(this.$el.find('button.btn_type1'));
+                $closeButtons.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    self.close();
+                });
+
+                this.$el.find('button.btn_type2').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    if ('move-to-trash' === self.model.get('action')) {
+                        if (_.isFunction(self.model.get('callback')))
+                            self.model.get('callback')();
+                    }
+                    self.close();
+                });
+            }
+        });
+
         contact.AlertLayerView = Backbone.Marionette.ItemView.extend({
             template: function (data) {
                 var html = contact.$template.filter('#alert-layer-template').html();
@@ -361,7 +409,221 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             }
         });
 
+        contact.GroupSettingsView = Backbone.Marionette.ItemView.extend({
+            id: 'group_settings',
+            className: 'layer_g layer_type3',
+            attributes: {
+                style: 'user-select: none;z-index:9999;'
+            },
+            template: function (data) {
+                var html, compiledTemplate = contact.GroupSettingsView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#group-settings-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.GroupSettingsView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate({
+                    groupCollection: data.groupCollection,
+                    contactModels: data.contactModels
+
+                });
+                return html;
+            },
+            initialize: function (options) {
+                this.groupCollection = this.model.get('groupCollection');
+                this.contactModels = this.model.get('contactModels');
+                this.listenTo(this.groupCollection, 'add', function (model) {
+                    this.listenToOnce(model, 'sync', function () {
+                        this.render();
+                        this.$el.find('input#inpToolGroup' + model.id).prop('checked', true);
+                    })
+                });
+            },
+            onRender: function () {
+                var self = this;
+                var $items = this.$el.find('input.inp_chk');
+
+                $items.change(function (event) {
+                    event.stopPropagation();
+                    self.changed = true;
+                })
+
+                this.$el.find('button.save').click(function (event) {
+                    event.preventDefault && event.stopPropagation();
+                    if (!self.changed)
+                        return;
+
+                    var checkedBoxes = _.map($items.filter(':checked'), function (box) {
+                        return parseInt(box.value)
+                    });
+
+                    new Backbone.Model({
+                        id: 0
+                    }).save({
+                        contactIDList: _.map(self.contactModels, 'id'),
+                        groupIDList: checkedBoxes
+                    }, {
+                        url: 'contacts/move',
+                        success: function () {
+                            app.vent.trigger('show:toast-layer', {
+                                message: '그룹 설정이 완료되었습니다.'
+                            });
+
+                            app.vent.trigger('fetch:group-collection');
+                            location.hash = location.hash + '?' + $.param({
+                                _: new Date().getTime()
+                            })
+
+                        }
+                    });
+                });
+
+                this.$el.find('button.btn_new').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    app.vent.trigger('show:group-layer');
+                });
+            },
+            onShow: function () {
+                var self = this;
+                $(app.rootElement).one('click', function (event) {
+                    event.stopPropagation()
+                    if ($(event.target).closest('#group_settings').length > 0)
+                        return;
+                    if ($(event.target).closest('.layer_alert').length > 0)
+                        return;
+                    self.close();
+                })
+
+            }
+        });
+
+        contact.ContactListSearchView = Backbone.Marionette.Layout.extend({
+            className: 'addressbook_head',
+            attributes: {
+                style: "min-width: initial;"
+            },
+            regions: {
+                groupSettingsRegion: '#groupSettingsRegion',
+                sortLayerRegion: '#sortLayerRegion'
+            },
+            template: function () {
+                var html, compiledTemplate = contact.ContactListSearchView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#contact-list-search-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ContactListSearchView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate();
+                return html;
+            },
+            initialize: function (options) {
+                this.contactCollection = options.contactCollection;
+                this.listenTo(app.vent, 'show:group-settings', this.showGroupSettings);
+            },
+            onRender: function () {
+                var self = this;
+                this.$el.find('#inpChkAll').click(function (event) {
+                    event.stopPropagation();
+                    app.vent.trigger('select:check-boxes', this.checked);
+                });
+
+                var $sortField = this.$el.find('span#sortField');
+                var $sortButton = this.$el.find('button.btn_order');
+                $sortButton.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    var $this = $(this);
+
+                    var sortField = $sortField.data('field');
+                    var sortOrder;
+                    if ($this.hasClass('reverse_on')) {
+                        $this.removeClass('reverse_on')
+                        sortOrder = 'DESC'
+                    } else {
+                        $this.addClass('reverse_on');
+                        sortOrder = 'ASC'
+                    }
+                    self.contactCollection.sort(sortField, sortOrder);
+                    app.vent.trigger('show:contact-list');
+                });
+
+                this.$el.find('#sort_box_layer').click(function (event) {
+                    event.stopPropagation();
+                    var $this = $(this);
+                    if (!$this.hasClass('box_open')) {
+                        $this.addClass('box_open')
+                        $('body').one('click', function () {
+                            $this.removeClass('box_open')
+                        });
+                        return false;
+                    }
+                });
+
+                this.$el.find('input[name=inpSort]').change(function (event) {
+                    event.stopPropagation();
+                    var $this = $(this);
+                    var sortField = $this.val();
+                    if ('email' === sortField)
+                        $sortField.data('field', sortField);
+                    else if ('fullName' === sortField)
+                        $sortField.data('field', sortField);
+                    $sortField.text($this.next('label').text().trim());
+                    $('body').click();
+                    self.contactCollection.sort(sortField, 'ASC');
+                    app.vent.trigger('show:contact-list');
+                });
+
+                var $search = this.$el.find('#tfSearch');
+                $search.keyup(_.debounce(function (event) {
+                    event.preventDefault && event.stopPropagation();
+                    if (!this.value || _.size(this.value.trim()) === 0) {
+                        app.vent.trigger('show:contact-list', contact.contactCollection);
+                        return;
+                    }
+                    var models = self.contactCollection.search(this.value);
+                    if (_.size(models) === 0) {
+                        app.vent.trigger('show:no-search-result');
+                        return;
+                    }
+                    app.vent.trigger('show:contact-list', new contact.ContactCollection(models));
+                }, 400));
+
+                this.$el.find('button.btn_search').click(function (event) {
+                    event.preventDefault && event.stopPropagation();
+                    $search.keyup();
+                });
+
+                this.$el.find('button.btn_del').click(function (event) {
+                    event.preventDefault && event.stopPropagation();
+                    app.vent.trigger('confirm:move-to-trash-contacts');
+                });
+
+                this.$el.find('button#move_group').click(function (event) {
+                    event.preventDefault && event.stopPropagation();
+                    try {
+                        app.vent.trigger('get:checked-boxes');
+                    } catch (e) {
+                        app.vent.trigger('show:alert-layer', {
+                            messages: ['연락처를 선택해주세요.']
+                        });
+                    }
+                    return false;
+                });
+            },
+            showGroupSettings: function (contactModels) {
+                if (contactModels.length === 0)
+                    throw new Error('contacts size is zero')
+
+                this.groupSettingsRegion.show(new contact.GroupSettingsView({
+                    model: new Backbone.Model({
+                        groupCollection: contact.groupCollection,
+                        contactModels: contactModels
+                    })
+                }));
+            }
+        });
+
         contact.ContactListView = Backbone.Marionette.ItemView.extend({
+            className: 'addressbook_body',
             template: function (data) {
                 var html, compiledTemplate = contact.ContactListView.compiledTemplate;
                 if (!compiledTemplate) {
@@ -374,6 +636,107 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
                 return html;
             },
+            initialize: function () {
+                this.contactCollection = this.model.get('contactCollection');
+                this.listenTo(app.vent, 'select:check-boxes', function (checked) {
+                    _.each(this.$checkBoxes, function (checkBox) {
+                        var $checkBox = $(checkBox);
+                        $checkBox.prop('checked', checked)
+                        var $li = $checkBox.closest('li')
+                        if ($checkBox.is(':checked'))
+                            !$li.hasClass('item_on') && $li.addClass('item_on')
+                        else
+                            $li.hasClass('item_on') && $li.removeClass('item_on')
+                    })
+                });
+
+                this.listenTo(app.vent, 'confirm:move-to-trash-contacts', this.moveToTrash);
+                this.listenTo(app.vent, 'get:checked-boxes', function () {
+                    var $checkedBoxes = this.$checkBoxes.filter(':checked');
+                    var contactIDList = _.map($checkedBoxes, function (checkedBox) {
+                        return parseInt(checkedBox.value);
+                    })
+                    var models = _.filter(this.contactCollection.models, function (model) {
+                        return _.contains(contactIDList, model.id)
+                    })
+                    app.vent.trigger('show:group-settings', models);
+                });
+
+            },
+            onRender: function () {
+                this.$checkBoxes = this.$el.find('div.item_profile .inp_chk');
+                this.$checkBoxes.click(function (event) {
+                    event.stopPropagation();
+                    var $this = $(this);
+                    var $li = $this.closest('li');
+
+                    if ($this.is(':checked'))
+                        !$li.hasClass('item_on') && $li.addClass('item_on')
+                    else
+                        $li.hasClass('item_on') && $li.removeClass('item_on')
+                })
+            },
+            moveToTrash: function () {
+                var $checkedBoxes = this.$checkBoxes.filter(':checked');
+                app.vent.trigger('show:confirm-layer', {
+                    action: 'move-to-trash',
+                    messages: [
+                        $checkedBoxes.length + '개의 연락처를 삭제하시겠습니까?',
+                        '삭제된 연락처는 휴지통으로 이동됩니다.'
+                    ],
+                    callback: function () {
+                        var contactIDList = _.map($checkedBoxes, function (checkedBox) {
+                            return parseInt(checkedBox.value);
+                        })
+                        if (_.size(contactIDList) === 0)
+                            return;
+
+                        new Backbone.Model({
+                            id: 0
+                        }).save({
+                            idList: contactIDList
+                        }, {
+                            url: 'contacts/trash',
+                            patch: true,
+                            success: function () {
+                                var models = _.filter(self.contactCollection.models, function (model) {
+                                    return _.contains(contactIDList, model.id)
+                                })
+                                if (_.size(models) > 0)
+                                    app.vent.trigger('show:contact-list', new contact.contactCollection(models));
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        contact.NoSearchResultView = Backbone.Marionette.ItemView.extend({
+            className: 'addressbook_body',
+            template: function () {
+                var html, compiledTemplate = contact.NoSearchResultView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#no-search-result-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.NoSearchResultView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate();
+                return html;
+            },
+        });
+
+
+        contact.ContactLayerView = Backbone.Marionette.ItemView.extend({
+            template: function () {
+                var html, compiledTemplate = contact.ContactLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#contact-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ContactLayerView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate({});
+                return html;
+            },
             onRender: function () {
 
             }
@@ -384,7 +747,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             attributes: {
                 id: 'mArticle'
             },
-            template: function (data) {
+            template: function () {
                 var html, compiledTemplate = contact.ContentLayout.compiledTemplate;
                 if (!compiledTemplate) {
                     html = contact.$template.filter('#content-layout-template').html();
@@ -395,21 +758,51 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 return html;
             },
             regions: {
+                contactListSearchRegion: 'div#contactListSearchRegion',
                 contactListRegion: 'div#contactListRegion',
+                contactLayerRegion: 'div#contactLayerRegion',
             },
             initialize: function (options) {
                 this.contactCollection = options.contactCollection;
                 this.listenTo(this.contactCollection, 'sync', this.showContactList);
+                this.listenTo(app.vent, 'show:contact-list', this.showContactList);
+                this.listenTo(app.vent, 'show:no-search-result', this.showNoSearchResult);
+                this.listenTo(app.vent, 'show:contact-layer', this.showContactLayer);
             },
             onRender: function () {
-
+                this.contactListSearchRegion.show(new contact.ContactListSearchView({
+                    contactCollection: this.contactCollection
+                }));
             },
             showContactList: function (contactCollection) {
-                this.contactListRegion.show(new contact.ContactListView({
+                if (contactCollection)
+                    this.contactListSearchRegion.currentView.contactCollection = contactCollection;
+                else
+                    contactCollection = this.contactCollection;
+
+                var contactListView = new contact.ContactListView({
                     model: new Backbone.Model({
-                        contactCollection: !contactCollection ? this.contactCollection : contactCollection
+                        contactCollection: contactCollection
                     })
-                }));
+                });
+                this.contactListRegion.show(contactListView);
+                contactListView.$el.appendTo('#' + this.attributes.id);
+            },
+            showContactLayer: function (contactModel) {
+                var model = contactModel ? contactModel : new contact.ContactModel()
+                var contactLayerView = new contact.ContactLayerView({
+                    model: new Backbone.Model({
+                        contactModel: model,
+                        isNew: model.isNew()
+                    })
+                });
+                this.contactLayerRegion.show(contactLayerView);
+                contactLayerView.$el.appendTo(app.rootElement);
+            },
+            showNoSearchResult: function () {
+                var noSearchResultView = new contact.NoSearchResultView();
+                this.contactListRegion.show(noSearchResultView);
+                noSearchResultView.$el.appendTo('#' + this.attributes.id);
             }
         });
 

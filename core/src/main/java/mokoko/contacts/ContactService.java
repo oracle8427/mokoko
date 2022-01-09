@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,5 +58,30 @@ public class ContactService {
 
         // 주소록 제거
         contactMapper.deleteContact(id);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void moveToTrash(List<?> idList, int trashID) {
+        if (idList == null || idList.size() == 0)
+            return;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("idList", idList);
+        params.put("groupID", trashID);
+        contactMapper.unlinkAllGroup(idList);
+        contactMapper.moveToGroup(params);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void moveToGroup(List<?> contactIDList, List<?> groupIDList) {
+        contactMapper.unlinkAllGroup(contactIDList);
+        if (groupIDList.size() > 0) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("idList", contactIDList);
+            for (Object groupID: groupIDList) {
+                params.put("groupID", groupID);
+                contactMapper.moveToGroup(params);
+            }
+        }
     }
 }

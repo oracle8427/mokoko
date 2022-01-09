@@ -21,9 +21,11 @@
                group_type,
                sort_no
         FROM contact_group
-        WHERE id = #{id}
-          AND user_id = #{userID}
-          AND group_type = #{groupType}
+        <where>
+            <if test="id != null"> AND id = #{id} </if>
+            <if test="userID != null"> AND user_id = #{userID} </if>
+            <if test="groupType != null"> AND group_type = #{groupType} </if>
+        </where>
     </select>
 
     <select id="selectGroups" resultMap="GroupResultMap">

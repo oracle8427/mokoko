@@ -28,4 +28,7 @@ public interface ContactMapper {
 
     int unlinkGroup(int contactID);
 
+    int unlinkAllGroup(List<?> idList);
+
+    void moveToGroup(Map<String, Object> params);
 }
