@@ -31,4 +31,9 @@ public interface ContactMapper {
     int unlinkAllGroup(List<?> idList);
 
     void moveToGroup(Map<String, Object> params);
+
+    int insertContact(ContactEntity contact);
+
+    int insertContactExpansion(ContactExpansionEntity contactExpansion);
+
 }
