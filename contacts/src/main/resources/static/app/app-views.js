@@ -32,15 +32,14 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
     app.DimmedLayer = Backbone.Marionette.ItemView.extend({
         className: 'dimm_layer',
         attributes: {
-            style: 'touch-action: none; display: none;'
+            style: 'touch-action: none; display: none;z-index:999;'
         },
-        initialize: function () {
-            this.listenTo(app.vent, 'show:dimmed', function () {
-                this.$el.show();
-            });
-            this.listenTo(app.vent, 'hide:dimmed', function () {
-                this.$el.hide();
-            });
+        initialize: function (options) {
+            this.childLayer = {};
+            if (_.has(options, 'z-index'))
+                this._zIndex = options['z-index'];
+            else
+                this._zIndex = parseInt(this.$el.css('z-index'));
         },
         template: function () {
             var html, compiledTemplate = app.DimmedLayer.compiledTemplate;
@@ -53,18 +52,45 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
             return html;
         },
         onRender: function () {
-            this.$el.appendTo(app.rootElement);
+
+        },
+        showDimmed : function (zIndex) {
+            if (zIndex)
+                this.$el.css('z-index', zIndex);
+            else if (this._zIndex !== this.$el.css('z-index'))
+                this.$el.css('z-index', this._zIndex)
+            this.$el.show();
+        },
+        hideDimmed : function () {
+            if (this._zIndex !== this.$el.css('z-index'))
+                this.$el.css('z-index', this._zIndex)
+            this.$el.hide();
+        },
+        showCompositeDimmed : function (el, zIndex) {
+            if (_.has(this.childLayer, zIndex))
+                throw new Error('Layer already exists. z-index: ' + zIndex);
+            this.childLayer[zIndex] = new app.DimmedLayer();
+            this.childLayer[zIndex].render().$el.appendTo(el);
+            if (zIndex)
+                this.childLayer[zIndex].showDimmed(zIndex);
+        },
+        closeCompositeDimmed : function (zIndex) {
+            if (_.has(this.childLayer, zIndex)) {
+                this.childLayer[zIndex].close();
+                delete this.childLayer[zIndex];
+            }
         }
+
     });
 
     app.OverlayLayer = Backbone.Marionette.ItemView.extend({
         initialize: function () {
             this.listenTo(app.vent, 'show:overlay-loading', function () {
-                app.vent.trigger('show:dimmed');
+                app.dimmedLayer.showDimmed();
                 this.$el.show();
             });
             this.listenTo(app.vent, 'hide:overlay-loading', function () {
-                app.vent.trigger('hide:dimmed');
+                app.dimmedLayer.hideDimmed();
                 this.$el.hide();
             });
         },
