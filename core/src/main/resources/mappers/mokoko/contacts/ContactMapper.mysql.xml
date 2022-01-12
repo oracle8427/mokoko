@@ -91,6 +91,7 @@
         ) cg
             ON id = cg.contact_id
         WHERE group_type <![CDATA[ < ]]> 2
+           OR group_type IS NULL
     </select>
 
     <select id="selectGroupContacts" resultMap="ContactResultMap">
@@ -127,18 +128,19 @@
     </select>
 
     <select id="selectAllCount" resultType="int">
-        SELECT COUNT(*)
+        SELECT count(*)
         FROM (
-            SELECT c.id
+            SELECT c.id, group_type
             FROM contact c
-                LEFT JOIN contact_contact_group ccg
-                    ON c.id = ccg.contact_id
-                INNER JOIN contact_group cg
-                    ON 	ccg.group_id = cg.id
-            WHERE c.user_id = #{userID}
-                AND cg.group_type <![CDATA[ < ]]> 2
-            GROUP BY c.id
-        ) A
+                LEFT JOIN (
+                        SELECT contact_id, group_type
+                        FROM contact_group cg
+                            INNER JOIN contact_contact_group ccg
+                                ON cg.id = ccg.group_id
+                        WHERE  user_id = #{userID}
+                ) cg
+                    ON id = cg.contact_id) g
+        WHERE  group_type <![CDATA[ < ]]> 2 OR group_type IS NULL
     </select>
 
     <select id="selectImportantCount" resultType="int">
