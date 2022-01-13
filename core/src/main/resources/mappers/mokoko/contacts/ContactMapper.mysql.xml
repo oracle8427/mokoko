@@ -35,6 +35,8 @@
             <result property="addressType" column="address_type"/>
             <result property="specialDay" column="special_day"/>
             <result property="specialDayType" column="special_day_type"/>
+            <result property="sns" column="sns"/>
+            <result property="snsType" column="sns_type"/>
             <result property="email" column="email"/>
             <result property="sortNumber" column="contact_expansion_sort_no"/>
             <result property="created" column="created"/>
@@ -66,6 +68,8 @@
         address_type,
         special_day,
         special_day_type,
+        sns,
+        sns_type,
         email,
         ce.sort_no contact_expansion_sort_no,
         created,

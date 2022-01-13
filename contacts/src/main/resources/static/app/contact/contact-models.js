@@ -74,8 +74,8 @@ define(['app'], function (app) {
                         function () {
                             var expansions = model.get('contactExpansions');
                             for (var i = 0; i < expansions.length; i++) {
-                                if (expansions[i].email.indexOf(keyword) > -1 ||
-                                    expansions[i].phone.indexOf(keyword) > -1)
+                                if ((expansions[i].email && expansions[i].email.indexOf(keyword) > -1) ||
+                                    (expansions[i].phone && expansions[i].phone.indexOf(keyword) > -1))
                                     return true;
                             }
                             return false;

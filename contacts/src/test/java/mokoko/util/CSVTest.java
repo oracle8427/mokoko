@@ -71,7 +71,7 @@ public class CSVTest extends TestConfiguration {
 
             String email = recordMap.get("email");
 
-            String sns = recordMap.get("sns");
+            String sns = recordMap.get("web");
             String snsType = SNS_TYPES[random.nextInt(3)];
 
             String phone1 = recordMap.get("phone1");
