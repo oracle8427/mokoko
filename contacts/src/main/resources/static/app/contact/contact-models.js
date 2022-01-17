@@ -84,6 +84,92 @@ define(['app'], function (app) {
             }
         });
 
+        contact.CSVModel = Backbone.Model.extend({
+            urlRoot: 'contacts',
+            defaults: function () {
+                return {
+                    contacts: [],
+                    pause: false,
+                    fetchCount: 20,
+                }
+            },
+            contactExpansionOptions: {
+                'phone': {
+                    'default': 'home',
+                    '집': 'home',
+                    '직장': 'company',
+                    '휴대폰': 'mobile',
+                    '팩스': 'fax',
+                    '기타': 'etc',
+
+                },
+                'specialDay': {
+                    'default': 'anniversary',
+                    '기념일': 'anniversary',
+                    '기타': 'etc'
+                },
+                'sns': {
+                    'default': 'blog',
+                    '블로그': 'blog',
+                    '기타': 'etc'
+                },
+                'address': {
+                    'default': 'home',
+                    '집': 'home',
+                    '직장': 'company',
+                    '기타': 'etc'
+                },
+            },
+            initialize: function (attributes, options) {
+                Backbone.Model.prototype.initialize.apply(this, arguments);
+                this.pause = false;
+            },
+            hasOption: function (prop) {
+                return _.has(this.contactExpansionOptions, prop);
+            },
+            optionValue: function (prop, value) {
+                return this.contactExpansionOptions[prop][value] || this.contactExpansionOptions[prop]['default'];
+            },
+            optionName: function (prop) {
+                return prop + 'Type';
+            },
+            clear: function (options) {
+                Backbone.Model.prototype.clear.apply(this, options);
+            },
+            parseHeader: function (rowHeader) {
+                return _.map(rowHeader, function (header) {
+                    if ('Name' === header)
+                        return 'firstname'
+                    else if ('Last Name' === header)
+                        return 'lastname'
+                    else if ('Nickname' === header)
+                        return 'nickname'
+                    else if ('Date of Birth' === header)
+                        return 'birth'
+                    else if ('Company' === header)
+                        return 'organization'
+                    else if ('Title' === header)
+                        return 'position'
+                    else if ('Memo' === header)
+                        return 'notes'
+                    else if (header.indexOf('Email') > -1)
+                        return 'email'
+                    else if (header.indexOf('Phone Number') > -1)
+                        return 'phone'
+                    else if (header.indexOf('Anniversary') > -1)
+                        return 'specialDay'
+                    else if (header.indexOf('SNS') > -1)
+                        return 'sns'
+                    else if (header.indexOf('Messenger') > -1)
+                        return 'messenger'
+                    else if (header.indexOf('Address') > -1)
+                        return 'address'
+                    else
+                        return header;
+                });
+            },
+        });
+
         contact.GroupModel = Backbone.Model.extend({
             urlRoot: 'groups',
             idAttribute: 'id',

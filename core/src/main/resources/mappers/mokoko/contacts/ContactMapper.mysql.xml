@@ -203,19 +203,18 @@
         </foreach>
     </insert>
 
-
     <insert id="insertContact">
         <selectKey resultType="int" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
         INSERT INTO contact (
-        user_id, fullname, firstname, lastname, nickname,
-        birth, organization, position, sort_no, notes,
-        important
+            user_id, fullname, firstname, lastname, nickname,
+            birth, organization, position, sort_no, notes,
+            important
         ) VALUES (
-        #{userID}, #{fullName}, #{firstname}, #{lastname}, #{nickname},
-        #{birth}, #{organization}, #{position}, #{sortNumber}, #{notes},
-        #{important}
+            #{userID}, #{fullName}, #{firstname}, #{lastname}, #{nickname},
+            #{birth}, #{organization}, #{position}, #{sortNumber}, #{notes},
+            #{important}
         )
     </insert>
 
@@ -224,14 +223,27 @@
             SELECT LAST_INSERT_ID()
         </selectKey>
         INSERT INTO contact_expansion (
-        contact_id, phone, phone_type, messenger,
-        address, address_type, special_day, special_day_type,
-        sns, sns_type, email, sort_no
+            contact_id, phone, phone_type, messenger,
+            address, address_type, special_day, special_day_type,
+            sns, sns_type, email, sort_no
         ) VALUES (
-        #{contactID}, #{phone}, #{phoneType}, #{messenger},
-        #{address}, #{addressType}, #{specialDay}, #{specialDayType},
-        #{sns}, #{snsType}, #{email}, #{sortNumber}
+            #{contactID}, #{phone}, #{phoneType}, #{messenger},
+            #{address}, #{addressType}, #{specialDay}, #{specialDayType},
+            #{sns}, #{snsType}, #{email}, #{sortNumber}
         )
     </insert>
 
+    <insert id="insertContactExpansions">
+        INSERT INTO contact_expansion (
+            contact_id, phone, phone_type, messenger,
+            address, address_type, special_day, special_day_type,
+            sns, sns_type, email, sort_no
+        )
+        VALUES
+        <foreach collection="contactExpansions" item="expansion" index="index" separator="," >
+            ( #{expansion.contactID}, #{expansion.phone}, #{expansion.phoneType}, #{expansion.messenger},
+              #{expansion.address}, #{expansion.addressType}, #{expansion.specialDay}, #{expansion.specialDayType},
+              #{expansion.sns}, #{expansion.snsType}, #{expansion.email}, #{expansion.sortNumber} )
+        </foreach>
+    </insert>
 </mapper>

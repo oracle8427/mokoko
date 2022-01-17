@@ -83,7 +83,7 @@
                     <button type="button" class="btn_recycle">비우기</button>
                 </li>
                 <li class="item_pc">
-                    <a class="link_menu" href="import">
+                    <a class="link_menu" href="#import">
                         <span class="ico_menu"><span class="ico_addressbook ico_import"></span></span>
                         <span class="txt_menu">주소록 가져오기</span>
                     </a>
@@ -117,6 +117,7 @@
     <div id="groupLayerRegion"></div>
     <div id="alertLayerRegion"></div>
     <div id="toastLayerRegion"></div>
+    <div id="toastFooterLayerRegion"></div>
     <div id="groupRemoveLayerRegion"></div>
 </script>
 
@@ -240,10 +241,26 @@
 </script>
 
 <script type="text/template" id="toast-layer-template">
-    <div class="toast_comm" style="z-index: 100000;"><p class="txt_toast"><span><%- data.message %><br></span></p>
+    <div class="toast_comm" style="z-index: 100000;">
+        <p class="txt_toast"><span><%- data.message %><br></span></p>
         <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
     </div>
 </script>
+
+<script type="text/template" id="toast-footer-layer-template">
+    <div class="toast_import toast_import2">
+        <span class="ico_addressbook ico_chk"></span>
+        <span class="txt_toast"><%- data.message %></span>
+    <% if (data.contact) { %>
+        <span class="emph_toast"><%- data.contact.importCount %> / <%- data.contact.maxCount %></span>
+    <% } %>
+        <button type="button" class="btn_close">
+            <span class="ico_addressbook ico_close">닫기</span>
+        </button>
+    </div>
+</script>
+
+
 
 <script type="text/template" id="contact-list-search-template">
     <div class="wrap_tool" style="user-select: none;">
@@ -444,8 +461,408 @@
         <button type="button" class="btn_close save">저장</button>
 </script>
 
+<script type="text/template" id="email-input-template">
+    <div class="info_address" data-epicenter="email">
+        <strong class="tit_info">
+            <label class="lab_info" for="tfWriteMail<%- index %>">
+            <% if (index === 0 ) { %>
+                <span class="ico_addressbook ico_email">이메일</span>
+            <% } %>
+            </label>
+        </strong>
+        <div class="box_tf">
+            <input autocomplete="off" type="text" id="tfWriteMail<%- index %>"
+                   name="tfWriteMail2" class="tf_g" placeholder="이메일" title="이메일"
+                   value="<%- contactExpansion.email %>">
+            <button type="button" class="btn_del">
+                <span class="ico_addressbook ico_del">삭제</span>
+            </button>
+        </div>
+    <% if (index === 0 ) { %>
+        <button type="button" class="btn_addition" value="email">
+            <span class="ico_addressbook ico_addition">추가</span>
+        </button>
+    <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="phone-input-template">
+    <div class="info_address" data-epicenter="phone">
+        <strong class="tit_info">
+            <label class="lab_info" for="tfWritePhone<%- index %>">
+            <% if (index === 0 ) { %>
+                <span class="ico_addressbook ico_phone">전화번호</span>
+            <% } %>
+            </label>
+        </strong>
+        <div class="box_info">
+            <div class="box_tf">
+                <input autocomplete="off" type="text" id="tfWritePhone<%- index %>" name="tfWritePhone"
+                       title="전화번호" class="tf_g" placeholder="전화번호"
+                       value="<%- contactExpansion.phone %>">
+                <button type="button" class="btn_del">
+                    <span class="ico_addressbook ico_del">삭제</span>
+                </button>
+            </div>
+            <div class="opt_comm">
+                <button type="button" class="btn_opt">
+                    <%
+                        var phoneType = contactExpansion.phoneType;
+                        var dict = {
+                            'home' : '집',
+                            'company' : '직장',
+                            'mobile' : '휴대폰',
+                            'fax' : '팩스',
+                            'etc' : '기타'
+                        }
+                    %>
+                    <span class="screen_out">선택됨</span>
+                    <span class="selected_type"
+                          data-type="<%- phoneType || 'home' %>"><%- dict[phoneType] || dict['home'] %></span>
+                    <span class="ico_addressbook ico_arr"></span>
+                </button>
+                <div class="dimm_layer"></div>
+                <div class="layer_g layer_opt">
+                    <div class="inner_layer"><strong class="screen_out">선택옵션</strong>
+                        <ul class="list_chk">
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptPhone110<%- index %>" name="inpOptPhone<%- index %>"
+                                           class="inp_chk" value="home" <%- !phoneType || phoneType === 'home' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptPhone110<%- index %>">
+                                        <span><%- dict['home'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptPhone111<%- index %>" name="inpOptPhone<%- index %>"
+                                           class="inp_chk" value="company" <%- phoneType === 'company' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptPhone111<%- index %>">
+                                        <span><%- dict['company'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptPhone112<%- index %>" name="inpOptPhone<%- index %>"
+                                           class="inp_chk" value="mobile" <%- phoneType === 'mobile' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptPhone112<%- index %>">
+                                        <span><%- dict['mobile'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptPhone113<%- index %>" name="inpOptPhone<%- index %>"
+                                           class="inp_chk" value="fax" <%- phoneType === 'fax' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptPhone113<%- index %>">
+                                        <span><%- dict['fax'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptPhone114<%- index %>" name="inpOptPhone<%- index %>"
+                                           class="inp_chk" value="etc" <%- phoneType === 'etc' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptPhone114<%- index %>">
+                                        <span><%- dict['etc'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% if (index === 0 ) { %>
+        <button type="button" class="btn_addition" value="phone">
+            <span class="ico_addressbook ico_addition">추가</span>
+        </button>
+    <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="special-day-input-template">
+    <div class="info_address info_more" data-epicenter="specialDay">
+        <strong class="tit_info">
+            <label class="lab_info" for="tfWriteDay<%- index %>">
+            <% if (index === 0 ) { %>
+                <span class="ico_addressbook ico_day">기념일</span>
+            <% } %>
+            </label>
+        </strong>
+        <div class="box_info">
+            <div class="box_tf">
+                <input autocomplete="off" type="text" id="tfWriteDay<%- index %>" class="tf_g" name="tfWriteDay"
+                       title="날짜" placeholder="날짜" value="<%- contactExpansion.specialDay %>">
+                <button type="button" class="btn_del">
+                    <span class="ico_addressbook ico_del">삭제</span>
+                </button>
+            </div>
+            <div class="opt_comm">
+                <%
+                    var specialDayType = contactExpansion.specialDayType;
+                    var dict = {
+                        'anniversary' : '기념일',
+                        'etc' : '기타'
+                    }
+                %>
+                <button type="button" class="btn_opt">
+                    <span class="screen_out">선택됨</span>
+                    <span class="selected_type"
+                          data-type="<%- specialDayType || 'anniversary' %>"><%- dict[specialDayType] || dict['anniversary'] %></span>
+                    <span class="ico_addressbook ico_arr"></span>
+                </button>
+                <div class="layer_g layer_opt">
+                    <div class="inner_layer">
+                        <strong class="screen_out">선택옵션</strong>
+                        <ul class="list_chk">
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptDay1200<%- index %>" name="inpOptDay<%- index %>" class="inp_chk" checked=""
+                                           value="anniversary" <%- !specialDayType || specialDayType === 'anniversary' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptDay1200<%- index %>">
+                                        <span><%- dict['anniversary'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptDay1201<%- index %>" name="inpOptDay<%- index %>" class="inp_chk"
+                                           value="etc" <%- specialDayType === 'etc' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptDay1201<%- index %>">
+                                        <span><%- dict['etc'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="dimm_layer"></div>
+            </div>
+        </div>
+    <% if (index === 0 ) { %>
+        <button type="button" class="btn_addition" value="specialDay">
+            <span class="ico_addressbook ico_addition">항목추가</span>
+        </button>
+    <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="sns-input-template">
+    <div class="info_address info_more" data-epicenter="sns">
+        <strong class="tit_info">
+            <label class="lab_info" for="tfWriteLink<%- index %>">
+            <% if (index === 0 ) { %>
+                <span class="ico_addressbook ico_link">링크</span>
+            <% } %>
+            </label>
+        </strong>
+
+        <%
+            var snsType = contactExpansion.snsType;
+            var dict = {
+                'blog' : '블로그',
+                'homepage' : '홈페이지',
+                'etc' : '기타'
+            }
+        %>
+        <div class="box_info">
+            <div class="box_tf">
+                <input autocomplete="off" type="text" id="tfWriteLink<%- index %>" name="tfWriteLink"
+                       class="tf_g" placeholder="http://" title="SNS"
+                       value="<%- contactExpansion.sns %>">
+                <button type="button" class="btn_del">
+                    <span class="ico_addressbook ico_del">삭제</span>
+                </button>
+            </div>
+            <div class="opt_comm">
+                <button type="button" class="btn_opt">
+                    <span class="screen_out">선택됨</span>
+                    <span class="selected_type"
+                          data-type="<%- snsType || 'blog' %>"><%- dict[snsType] || dict['blog'] %></span>
+                    <span class="ico_addressbook ico_arr"></span>
+                </button>
+
+                <div class="layer_g layer_opt">
+                    <div class="inner_layer">
+                        <strong class="screen_out">선택옵션</strong>
+                        <ul class="list_chk">
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptLink100<%- index %>" name="inpOptLink<%- index %>"
+                                           class="inp_chk" value="blog" <%- (!snsType || snsType === 'blog') ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptLink100<%- index %>">
+                                        <span><%- dict['blog'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span></label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptLink101<%- index %>" name="inpOptLink<%- index %>"
+                                           class="inp_chk" value="homepage" <%- snsType === 'homepage' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptLink101<%- index %>">
+                                        <span><%- dict['homepage'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li class="option">
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptLink102<%- index %>" name="inpOptLink<%- index %>"
+                                           class="inp_chk" value="etc" <%- snsType === 'etc' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptLink102<%- index %>">
+                                        <span><%- dict['etc'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="dimm_layer"></div>
+            </div>
+        </div>
+    <% if (index === 0 ) { %>
+        <button type="button" class="btn_addition" value="sns">
+            <span class="ico_addressbook ico_addition">추가</span>
+        </button>
+    <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="msg-input-template">
+    <div class="info_address info_more" data-epicenter="msg">
+        <strong class="tit_info">
+            <label class="lab_info" for="tfWriteMsn<%- index %>">
+            <% if (index === 0 ) { %>
+                <span class="ico_addressbook ico_msn">메신저</span>
+            <% } %>
+            </label>
+        </strong>
+        <div class="box_tf">
+            <input autocomplete="off" type="text" id="tfWriteMsn<%- index %>" name="tfWriteMsn" class="tf_g"
+                   title="메신저" placeholder="메신저" value="<%- contactExpansion.messenger %>">
+            <button type="button" class="btn_del">
+                <span class="ico_addressbook ico_del">삭제</span>
+            </button>
+        </div>
+    <% if (index === 0 ) { %>
+        <button type="button" class="btn_addition" value="msg">
+            <span class="ico_addressbook ico_addition">추가</span>
+        </button>
+    <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="contact-layer-group-item-template">
+    <li class="group">
+        <div class="item_chk">
+            <input type="checkbox" id="inpWriteGroup<%- groupModel.id %>" class="inp_chk" name="inpWriteGroup"
+                   value="<%- groupModel.id %>" <%- _.contains(groups, groupModel.id) ? 'checked=checked' : ''%> >
+            <label class="lab_chk" for="inpWriteGroup<%- groupModel.id %>">
+                <span><%- groupModel.get('name') %></span>
+                <span class="ico_addressbook ico_chk"></span>
+            </label>
+        </div>
+    </li>
+</script>
+
+<script type="text/template" id="address-input-template">
+    <div class="info_address info_more" data-epicenter="address">
+        <strong class="tit_info">
+            <label class="lab_info" for="tfWriteLocation<%- index %>">
+            <% if (index === 0 ) { %>
+                <span class="ico_addressbook ico_location">주소</span>
+            <% } %>
+            </label>
+        </strong>
+        <%
+            var addressType = contactExpansion.addressType;
+            var dict = {
+                'home' : '집',
+                'company' : '직장',
+                'etc' : '기타'
+            }
+        %>
+        <div class="box_info">
+            <div class="box_tf">
+                <input autocomplete="off" type="text" id="tfWriteLocation<%- index %>"
+                       name="tfWriteLocation" title="주소" class="tf_g" placeholder="주소"
+                       value="<%- contactExpansion.address %>">
+                <button type="button" class="btn_del">
+                    <span class="ico_addressbook ico_del">삭제</span>
+                </button>
+            </div>
+            <div class="opt_comm">
+                <button type="button" class="btn_opt">
+                    <span class="screen_out">선택됨</span>
+                    <span class="selected_type"
+                          data-type="<%- addressType || 'blog' %>"><%- dict[addressType] || dict['home'] %></span>
+                    <span class="ico_addressbook ico_arr"></span>
+                </button>
+                <div class="layer_g layer_opt">
+                    <div class="inner_layer"><strong class="screen_out">선택옵션</strong>
+                        <ul class="list_chk">
+                            <li>
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptLocation100<%- index %>" class="inp_chk"
+                                           name="inpOptLocation<%- index %>"
+                                           value="home" <%- (!addressType || addressType === 'home') ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptLocation100<%- index %>">
+                                        <span><%- dict['home'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptLocation101<%- index %>" class="inp_chk"
+                                           name="inpOptLocation<%- index %>"
+                                           value="home" <%- addressType === 'home' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptLocation101<%- index %>">
+                                        <span><%- dict['company'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item_chk">
+                                    <input type="radio" id="inpOptLocation102<%- index %>" class="inp_chk"
+                                           name="inpOptLocation<%- index %>"
+                                           value="etc" <%- addressType === 'etc' ? 'checked=checked' : '' %>>
+                                    <label class="lab_chk" for="inpOptLocation102<%- index %>">
+                                        <span><%- dict['etc'] %></span>
+                                        <span class="ico_addressbook ico_chk"></span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="dimm_layer"></div>
+            </div>
+        </div>
+    <% if (index === 0 ) { %>
+        <button type="button" class="btn_addition" value="address">
+            <span class="ico_addressbook ico_addition">추가</span>
+        </button>
+    <% } %>
+    </div>
+</script>
+
 <script type="text/template" id="contact-layer-template">
-    <div class="layer_comm layer_type2" style="user-select: none;">
+    <%
+        var contactExpansions = contact.contactExpansions || [];
+    %>
         <div class="layer_head"><strong class="tit_layer">연락처 추가</strong></div>
         <div class="layer_body">
             <form id="frmWrite" action="#">
@@ -453,18 +870,22 @@
                     <legend class="screen_out">연락처 추가 입력 폼</legend>
                     <div class="address_body address_write">
                         <div class="bundle_address">
+
+                            <!-- ▼▼▼ 이름 입력란 영역 시작 ▼▼▼ -->
                             <div class="info_address info_name">
                                 <strong class="tit_info"><span class="ico_addressbook ico_name">이름</span></strong>
                                 <div class="box_tf box_name1 ">
                                     <input autocomplete="off" type="text" id="tfWriteFirstName" name="tfWriteName"
-                                           title="이름" class="tf_g" placeholder="이름(필수)">
+                                           title="이름" class="tf_g" placeholder="이름(필수)"
+                                           value="<%- contact.firstname %>">
                                     <button type="button" class="btn_del">
                                         <span class="ico_addressbook ico_del">삭제</span>
                                     </button>
                                 </div>
                                 <div class="box_tf ">
                                     <input autocomplete="off" type="text" id="tfWriteLastName" name="tfWriteName"
-                                           title="성" class="tf_g" placeholder="성">
+                                           title="성" class="tf_g" placeholder="성"
+                                           value="<%- contact.lastname %>">
                                     <button type="button" class="btn_del">
                                         <span class="ico_addressbook ico_del">삭제</span>
                                     </button>
@@ -476,7 +897,9 @@
                                     </label>
                                 </div>
                             </div>
+                            <!-- ▲▲▲ 이름 입력란 영역 끝 ▲▲▲ -->
 
+                            <!-- ▼▼▼ 닉네임 입력란 영역 시작 ▼▼▼ -->
                             <div class="info_address info_more">
                                 <strong class="tit_info">
                                     <label class="lab_info" for="tfWriteNick">
@@ -485,121 +908,82 @@
                                 </strong>
                                 <div class="box_tf">
                                     <input autocomplete="off" type="text" id="tfWriteNick" name="tfWriteNick"
-                                           title="닉네임" class="tf_g" placeholder="닉네임" >
+                                           title="닉네임" class="tf_g" placeholder="닉네임"
+                                           value="<%- contact.nickname %>">
                                     <button type="button" class="btn_del">
                                         <span class="ico_addressbook ico_del">삭제</span>
                                     </button>
                                 </div>
                             </div>
-                            <div class="info_address">
-                                <strong class="tit_info">
-                                    <label class="lab_info" for="tfWriteMail0">
-                                        <span class="ico_addressbook ico_email">이메일</span>
-                                    </label>
-                                </strong>
-                                <div class="box_tf">
-                                    <input autocomplete="off" type="text" id="tfWriteMail0" name="tfWriteMail2"
-                                           title="이메일" class="tf_g" placeholder="이메일" >
-                                    <button type="button" class="btn_del">
-                                        <span class="ico_addressbook ico_del">삭제</span>
-                                    </button>
-                                </div>
-                                <button type="button" class="btn_addition">
-                                    <span class="ico_addressbook ico_addition">추가</span>
-                                </button>
-                            </div>
+                            <!-- ▲▲▲ 닉네임 입력란 영역 끝 ▲▲▲ -->
 
-                            <div class="info_address">
-                                <strong class="tit_info">
-                                    <label class="lab_info" for="tfWritePhone0">
-                                        <span class="ico_addressbook ico_phone">전화번호</span>
-                                    </label>
-                                </strong>
-                                <div class="box_info">
-                                    <div class="box_tf">
-                                        <input autocomplete="off" type="text" id="tfWritePhone0" name="tfWritePhone"
-                                               title="전화번호" class="tf_g" placeholder="전화번호">
-                                        <button type="button" class="btn_del">
-                                            <span class="ico_addressbook ico_del">삭제</span>
-                                        </button>
-                                    </div>
-                                    <div class="opt_comm">
-                                        <button type="button" class="btn_opt">
-                                            <span class="screen_out">선택됨</span>집
-                                            <span class="ico_addressbook ico_arr"></span>
-                                        </button>
-                                        <div class="dimm_layer"></div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn_addition">
-                                    <span class="ico_addressbook ico_addition">추가</span>
-                                </button>
-                            </div>
+                            <!-- ▼▼▼ 이메일 입력란 영역 시작 ▼▼▼ -->
+                            <%  var expansions = _.filter(contactExpansions, 'email');
+                                if (expansions.length === 0)
+                                    expansions.push({});
+                                _.each(expansions, function(contactExpansion, index) { %>
+                                    <%= templates['email']({
+                                            contactExpansion : contactExpansion,
+                                            index : index
+                                        }) %>
+                            <%  }); %>
+                            <!-- ▲▲▲ 이메일 입력란 영역 끝 ▲▲▲ -->
 
+                            <!-- ▼▼▼ 전화번호 입력란 영역 시작 ▼▼▼ -->
+                            <%  expansions = _.filter(contactExpansions, 'phone');
+                                if (expansions.length === 0)
+                                    expansions.push({});
+                                _.each(expansions, function(contactExpansion, index) { %>
+                                    <%= templates['phone']({
+                                            contactExpansion : contactExpansion,
+                                            index : index
+                                        }) %>
+                            <%  }); %>
+                            <!-- ▲▲▲ 전화번호 입력란 영역 끝 ▲▲▲ -->
+
+                            <!-- ▼▼▼ 그룹설정 입력란 영역 시작 ▼▼▼ -->
                             <div class="info_address">
                                 <strong class="tit_info"><span class="ico_addressbook ico_group">그룹</span></strong>
                                 <div class="opt_comm opt_group">
-                                    <button title="그룹설정" type="button" class="btn_opt">
-                                        <span class="screen_out">선택됨</span>그룹설정
+                                    <button title="그룹설정" type="button" class="btn_opt" value="groupSettings">
+                                        <span class="screen_out">선택됨</span>
+                                        <%
+                                            var nameList = _.map(contact.groups, 'name');
+                                            var names = nameList.length > 0 ? nameList.join(',') : '그룹설정';
+                                        %>
+                                        <span class="group_names"><%- names %></span>
                                         <span class="ico_addressbook ico_arr"></span>
                                     </button>
-                                    <div class="layer_g layer_group layer_type3 " style="user-select: none;">
+                                    <div class="layer_g layer_group layer_type3 " style="user-select: none; z-index: 1002">
                                         <strong class="tit_layer">그룹설정</strong>
                                         <div class="inner_layer">
-                                            <ul class="list_chk list_chk3">
-                                                <li>
-                                                    <div class="item_chk">
-                                                        <input type="checkbox" id="inpWriteGroup116760" class="inp_chk"
-                                                               name="inpWriteGroup">
-                                                        <label class="lab_chk"
-                                                               for="inpWriteGroup116760">test2<span class="ico_addressbook ico_chk"></span></label>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="item_chk">
-                                                        <input type="checkbox" id="inpWriteGroup116762" class="inp_chk"
-                                                               name="inpWriteGroup">
-                                                        <label class="lab_chk" for="inpWriteGroup116762">1228 02<span class="ico_addressbook ico_chk"></span></label>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="item_chk">
-                                                        <input type="checkbox" id="inpWriteGroup110255" class="inp_chk"
-                                                               name="inpWriteGroup" >
-                                                        <label class="lab_chk" for="inpWriteGroup110255">algo<span class="ico_addressbook ico_chk"></span></label>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="item_chk">
-                                                        <input type="checkbox" id="inpWriteGroup117053" class="inp_chk"
-                                                             name="inpWriteGroup">
-                                                        <label class="lab_chk" for="inpWriteGroup117053">awefawef<span class="ico_addressbook ico_chk"></span></label>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="item_chk">
-                                                        <input type="checkbox" id="inpWriteGroup117054" class="inp_chk"
-                                                               name="inpWriteGroup">
-                                                        <label class="lab_chk" for="inpWriteGroup117054">fwaewafeaf<span class="ico_addressbook ico_chk"></span></label>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="item_chk">
-                                                        <input type="checkbox" id="inpWriteGroup117062" class="inp_chk"
-                                                               name="inpWriteGroup">
-                                                        <label class="lab_chk" for="inpWriteGroup117062">111<span class="ico_addressbook ico_chk"></span></label>
-                                                    </div>
-                                                </li>
+                                            <ul class="list_chk list_chk3" id="contactLayerGroups">
+                                                <% _.each(groupCollection.models, function(groupModel) {  %>
+                                                    <%= templates['groupItem']({
+                                                            groupModel : groupModel,
+                                                            groups : _.map(contact.groups, 'id')
+                                                        }) %>
+                                                <%  }); %>
                                             </ul>
                                         </div>
-                                        <button type="button" class="btn_new"><span
+                                        <button type="button" class="btn_new" id="showGroupCreateBox"><span
                                                 class="ico_addressbook ico_new"></span>새 그룹 만들기
                                         </button>
-                                        <button type="button" class="btn_close">저장</button>
+                                        <div class="box_tf" style="padding-right: 120px; display: none" id="groupCreateBox">
+                                            <input type="text" id="tfWriteGroup" name="tfWritebirth" class="tf_g"
+                                                   title="그룹명" placeholder="그룹명은 10자까지 입력할 수 있습니다."
+                                                   maxlength="10">
+                                            <button type="button" class="btn_add">등록</button>
+                                            <p class="desc_error" style="display: none">중복된 그룹명입니다.</p>
+                                        </div>
+                                        <button type="button" class="btn_close group_save">저장</button>
                                     </div>
                                     <div class="dimm_layer"></div>
                                 </div>
                             </div>
+                            <!-- ▲▲▲ 그룹설정 입력란 영역 끝 ▲▲▲-->
+
+                            <!-- ▼▼▼ 생일 입력란 영역 시작 ▼▼▼ -->
                             <div class="info_address info_more">
                                 <strong class="tit_info">
                                     <label class="lab_info" for="tfWritebirth">
@@ -608,175 +992,64 @@
                                 </strong>
                                 <div class="box_tf">
                                     <input autocomplete="off" type="text" id="tfWritebirth" name="tfWritebirth"
-                                           class="tf_g" placeholder="생일" title="생일">
+                                           class="tf_g" placeholder="생일" title="생일"
+                                           value="<%- contact.birth ? contact.birth : ''%>">
                                     <button type="button" class="btn_del">
                                         <span  class="ico_addressbook ico_del">삭제</span>
                                     </button>
                                 </div>
                             </div>
-                            <div class="info_address info_more">
-                                <strong class="tit_info">
-                                    <label class="lab_info" for="tfWriteDay1">
-                                        <span class="ico_addressbook ico_day">기념일</span>
-                                    </label>
-                                </strong>
-                                <div class="box_info">
-                                    <div class="box_tf">
-                                        <input autocomplete="off" type="text" id="tfWriteDay1" class="tf_g" name="tfWriteDay"
-                                               title="날짜" placeholder="날짜">
-                                        <button type="button" class="btn_del">
-                                            <span class="ico_addressbook ico_del">삭제</span>
-                                        </button>
-                                    </div>
-                                    <div class="opt_comm">
-                                        <button type="button" class="btn_opt">
-                                            <span class="screen_out">선택됨</span>기념일<span class="ico_addressbook ico_arr"></span>
-                                        </button>
-                                        <div class="layer_g layer_opt">
-                                            <div class="inner_layer">
-                                                <strong class="screen_out">선택옵션</strong>
-                                                <ul class="list_chk">
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptDay1200" name="inpOptDay0" class="inp_chk" checked="">
-                                                            <label class="lab_chk" for="inpOptDay1200">기념일<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptDay1201" name="inpOptDay0" class="inp_chk">
-                                                            <label class="lab_chk" for="inpOptDay1201">기타<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="dimm_layer"></div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn_addition">
-                                    <span class="ico_addressbook ico_addition">항목추가</span>
-                                </button>
-                            </div>
-                            <div class="info_address info_more">
-                                <strong class="tit_info">
-                                    <label class="lab_info" for="tfWriteLink1">
-                                        <span class="ico_addressbook ico_link">링크</span>
-                                    </label>
-                                </strong>
-                                <div class="box_info">
-                                    <div class="box_tf">
-                                        <input autocomplete="off" type="text" id="tfWriteLink1" name="tfWriteLink"
-                                               class="tf_g" placeholder="http://" title="SNS">
-                                        <button type="button" class="btn_del">
-                                            <span class="ico_addressbook ico_del">삭제</span>
-                                        </button>
-                                    </div>
-                                    <div class="opt_comm">
-                                        <button type="button" class="btn_opt">
-                                            <span class="screen_out">선택됨</span>블로그<span class="ico_addressbook ico_arr"></span>
-                                        </button>
+                            <!-- ▲▲▲ 생일 입력란 영역 끝 ▲▲▲ -->
 
-                                        <div class="layer_g layer_opt">
-                                            <div class="inner_layer">
-                                                <strong class="screen_out">선택옵션</strong>
-                                                <ul class="list_chk">
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptLink100" name="inpOptLink0" class="inp_chk" checked="">
-                                                            <label class="lab_chk" for="inpOptLink100">블로그<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptLink101" name="inpOptLink0" class="inp_chk">
-                                                            <label class="lab_chk" for="inpOptLink101">홈페이지<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptLink102" name="inpOptLink0" class="inp_chk">
-                                                            <label class="lab_chk" for="inpOptLink102">기타<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="dimm_layer"></div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn_addition">
-                                    <span class="ico_addressbook ico_addition">추가</span>
-                                </button>
-                            </div>
-                            <div class="info_address info_more">
-                                <strong class="tit_info">
-                                    <label class="lab_info" for="tfWriteMsn1">
-                                        <span class="ico_addressbook ico_msn">메신저</span>
-                                    </label>
-                                </strong>
-                                <div class="box_tf">
-                                    <input autocomplete="off" type="text" id="tfWriteMsn1" name="tfWriteMsn" class="tf_g"
-                                           title="메신저" placeholder="메신저">
-                                    <button type="button" class="btn_del">
-                                        <span class="ico_addressbook ico_del">삭제</span>
-                                    </button>
-                                </div>
-                                <button type="button" class="btn_addition">
-                                    <span class="ico_addressbook ico_addition">추가</span>
-                                </button>
-                            </div>
-                            <div class="info_address info_more">
-                                <strong class="tit_info">
-                                    <label class="lab_info" for="tfWriteLocation1">
-                                        <span class="ico_addressbook ico_location">주소</span>
-                                    </label>
-                                </strong>
-                                <div class="box_info">
-                                    <div class="box_tf">
-                                        <input autocomplete="off" type="text" id="tfWriteLocation1"
-                                               name="tfWriteLocation" title="주소" class="tf_g" placeholder="주소">
-                                        <button type="button" class="btn_del">
-                                            <span class="ico_addressbook ico_del">삭제</span>
-                                        </button>
-                                    </div>
-                                    <div class="opt_comm">
-                                        <button type="button" class="btn_opt">
-                                            <span class="screen_out">선택됨</span>집<span class="ico_addressbook ico_arr"></span>
-                                        </button>
-                                        <div class="layer_g layer_opt">
-                                            <div class="inner_layer"><strong class="screen_out">선택옵션</strong>
-                                                <ul class="list_chk">
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptLocation100"
-                                                                   name="inpOptLocation0" class="inp_chk" checked="">
-                                                            <label class="lab_chk" for="inpOptLocation100">집<span class="ico_addressbook ico_chk"></span></label></div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptLocation101"
-                                                                   name="inpOptLocation0" class="inp_chk">
-                                                            <label class="lab_chk" for="inpOptLocation101">직장<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="item_chk">
-                                                            <input type="radio" id="inpOptLocation102" class="inp_chk"
-                                                                   name="inpOptLocation0">
-                                                            <label class="lab_chk" for="inpOptLocation102">기타<span class="ico_addressbook ico_chk"></span></label>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="dimm_layer"></div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn_addition">
-                                    <span class="ico_addressbook ico_addition">추가</span>
-                                </button>
-                            </div>
+                            <!-- ▼▼▼ 기념일 입력란 영역 시작 ▼▼▼ -->
+                            <%  expansions = _.filter(contactExpansions, 'specialDay');
+                                if (expansions.length === 0)
+                                    expansions.push({});
+                                _.each(expansions, function(contactExpansion, index) { %>
+                                    <%= templates['specialDay']({
+                                            contactExpansion : contactExpansion,
+                                            index : index
+                                        }) %>
+                            <%  }); %>
+                            <!-- ▲▲▲ 기념일 입력란 영역 끝 ▲▲▲ -->
+
+                            <!-- ▼▼▼ SNS 입력란 영역 시작 ▼▼▼ -->
+                            <%  expansions = _.filter(contactExpansions, 'sns');
+                                if (expansions.length === 0)
+                                    expansions.push({});
+                                _.each(expansions, function(contactExpansion, index) { %>
+                                    <%= templates['sns']({
+                                            contactExpansion : contactExpansion,
+                                            index : index
+                                        }) %>
+                            <%  }); %>
+                            <!-- ▲▲▲ SNS 입력란 영역 끝 ▲▲▲ -->
+
+                            <!-- ▼▼▼ 메신저 입력란 영역 시작 ▼▼▼ -->
+                            <%  expansions = _.filter(contactExpansions, 'messenger');
+                                if (expansions.length === 0)
+                                    expansions.push({});
+                                _.each(expansions, function(contactExpansion, index) { %>
+                                    <%= templates['msg']({
+                                        contactExpansion : contactExpansion,
+                                        index : index
+                                    }) %>
+                            <%  }); %>
+                            <!-- ▲▲▲ 메신저 입력란 영역 끝 ▲▲▲ -->
+
+                            <!-- ▼▼▼ 주소 입력란 영역 시작 ▼▼▼ -->
+                            <%  expansions = _.filter(contactExpansions, 'address');
+                                if (expansions.length === 0)
+                                    expansions.push({});
+                                _.each(expansions, function(contactExpansion, index) { %>
+                                    <%= templates['address']({
+                                        contactExpansion : contactExpansion,
+                                        index : index
+                                    }) %>
+                            <%  }); %>
+                            <!-- ▲▲▲ 주소 입력란 영역 끝 ▲▲▲ -->
+
+                            <!-- ▼▼▼ 소속 입력란 영역 시작 ▼▼▼ -->
                             <div class="info_address info_more">
                                 <strong class="tit_info">
                                     <label class="lab_info" for="tfWriteOffice">
@@ -785,19 +1058,24 @@
                                 </strong>
                                 <div class="box_tf">
                                     <input type="text" id="tfWriteOffice" name="tfWriteOffice" class="tf_g" title="소속"
-                                           placeholder="소속" autocomplete="off">
+                                           placeholder="소속" autocomplete="off"
+                                           value="<%- contact.organization ? contact.organization : ''%>">
                                     <button type="button" class="btn_del">
                                         <span class="ico_addressbook ico_del">삭제</span>
                                     </button>
                                 </div>
                                 <div class="box_tf">
                                     <input type="text" id="tfWriteClass" name="tfNewClass" class="tf_g" title="직위"
-                                           placeholder="직위" autocomplete="off">
+                                           placeholder="직위" autocomplete="off"
+                                           value="<%- contact.position ? contact.position : ''%>">
                                     <button type="button" class="btn_del">
                                         <span class="ico_addressbook ico_del">삭제</span>
                                     </button>
                                 </div>
                             </div>
+                            <!-- ▲▲▲ 소속 입력란 영역 끝 ▲▲▲ -->
+
+                            <!-- ▼▼▼ 메모 입력란 영역 시작 ▼▼▼ -->
                             <div class="info_address info_memo">
                                 <strong class="tit_info">
                                     <label class="lab_info" for="tfWritMemo">
@@ -806,12 +1084,14 @@
                                 </strong>
                                 <div class="box_tf">
                                     <textarea id="tfWritMemo" name="tfWritMemo" class="tf_g" placeholder="메모"
-                                              title="메모" style="min-height: 21px; resize: none; background-color: transparent; height: 21px;"></textarea>
+                                              title="메모" style="min-height: 21px; resize: none; background-color: transparent; height: 21px;"><%- contact.notes %></textarea>
                                     <button type="button" class="btn_del">
                                         <span class="ico_addressbook ico_del">삭제</span>
                                     </button>
                                 </div>
                             </div>
+                            <!-- ▲▲▲ 메모 입력란 영역 끝 ▲▲▲ -->
+
                         </div>
                         <button type="button" class="btn_addition2">
                             <span class="ico_addressbook ico_addition2"></span>항목추가</button>
@@ -820,7 +1100,7 @@
                     </div>
                     <div class="wrap_btn">
                         <button type="submit" class="btn_comm btn_type2">저장</button>
-                        <button type="button" class="btn_comm btn_type1">
+                        <button type="button" class="btn_comm btn_type1" id="contactLayerCancel">
                             <span class="txt_btn">취소</span>
                             <span class="ico_addressbook ico_cancel"></span>
                         </button>
@@ -829,17 +1109,101 @@
             </form>
         </div>
         <div class="layer_foot">
-            <button type="button" class="btn_close"><span class="ico_addressbook ico_close">닫기</span></button>
+            <button type="button" class="btn_close" id="contactLayerClose">
+                <span class="ico_addressbook ico_close">닫기</span>
+            </button>
         </div>
-    </div>
 </script>
 
 <script type="text/template" id="content-layout-template">
     <div id="contactListSearchRegion"></div>
     <div id="contactListRegion"></div>
     <div id="contactLayerRegion"></div>
+    <div id="importHeaderRegion"></div>
+    <div id="importContentRegion" class="article_body"></div>
+    <div id="importLoadingRegion"></div>
 </script>
 
-<script id="node-template" type="text/template">
-    <li><span><%= nodeName %></span></li>
+
+<script type="text/template" id="import-header-template">
+    <h2>주소록 가져오기</h2>
+    <div class="snb_addressbook" role="navigation"></div>
 </script>
+
+<script type="text/template" id="import-content-template">
+    <div class="inner_article"><h3 class="screen_out">주소록 파일 가져오기</h3>
+        <p class="desc_g">쉼표로 항목을 구분한 텍스트 파일 형식인 csv 파일을 가져와 주소록에 추가할 수 있습니다.<br>파일의 주소 개수가 1,000개 이상인 경우 속도가 느려질 수 있습니다.</p>
+        <form id="frmImport" action="#">
+            <fieldset>
+                <legend class="screen_out">주소록 파일 가져오기 폼</legend>
+                <div class="wrap_content" style="text-align: initial;">
+                    <div class="inner_content" style="padding-left: 300px;">
+                        <div class="box_file" style="width: 368px;">
+                            <div class="box_tf">
+                                <span id="fileName" class="txt_filename txt_guide">가져올 파일을 선택해주세요. (.csv 파일)</span>
+                            </div>
+                            <div class="btn_file">
+                                <label class="lab_file" for="inpFile">파일찾기</label>
+                                <input type="file" id="inpFile" name="inpFile" class="inp_file" accept=".csv">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wrap_btn">
+                    <button type="submit" class="btn_comm">가져오기</button>
+                </div>
+            </fieldset>
+        </form>
+        <div class="desc_notice"><strong class="tit_desc">꼭 확인하세요!</strong>
+            <p class="txt_desc">1. 데이터는 아래와 같이 첫행에 제목 데이터가 포함되어 있어야 합니다.<br>&nbsp;&nbsp;&nbsp;(참고로, 첫행의 데이터는 제목으로 간주하여 가져오지 않습니다)</p>
+            <ul class="list_desc">
+                <li>Name / nickname / email / phone number / date of birth / anniversary / SNS / messenger / address / company / title / memo</li>
+            </ul>
+            <p class="txt_desc">2. 아래의 항목은 숫자를 넣어 데이터를 추가할수 있습니다.<br>&nbsp;&nbsp;&nbsp;(단, 추가하는 항목은
+                이메일/전화번호/기념일/SNS/메신저/주소 항목 모두 합하여 30개까지만 가능합니다.)</p>
+            <ul class="list_desc">
+                <li>Email : email 1 / email 2 / email 3 ...</li>
+                <li>Phone number : phone number 1 / phone number 2 / phone number 3 ...</li>
+                <li>Anniversary : anniversary 1 / anniversary 2 / anniversary 3 ...</li>
+                <li>SNS : SNS 1 / SNS 2 / SNS 3 ...</li>
+                <li>Messenger : messenger 1 /messenger 2 / messenger 3 ...</li>
+                <li>Address: address 1 / address 2 / address 3 ...</li>
+            </ul>
+            <p class="txt_desc">3. 아래의 항목은 쉼표(,)를 이용하여 아래의 타입을 입력할수 있습니다. (입력예시 : 010-1234-5678, 핸드폰)<br>&nbsp;&nbsp;&nbsp;&nbsp;만약,
+                해당 요소가 없다면 가장 첫번째 타입을 기본 타입으로 지정하여 업데이트 됩니다. (선택박스 중 첫번째 노출되는 타입과 동일함)</p>
+            <ul class="list_desc">
+                <li>Phone number : Select 1 from Home / Work / Mobile phone / Fax / Other</li>
+                <li>Address : Select 1 from Home / Work / Other</li>
+                <li>Anniversary : Select 1 from Anniversary / Other</li>
+                <li>SNS : Select 1 from Blogs / Homepages / Other</li>
+            </ul>
+            <p class="txt_desc">4. 일부 특수문자의 경우 가져오기 시 누락될수 있습니다.</p>
+            <p class="txt_desc">5. 가져오기할 데이터가 없을 경우는 열을 비워두셔야 데이터 입력에 혼선이 생기지 않습니다.</p>
+            <div class="wrap_btn">
+                <button type="button" class="btn_comm btn_type1">
+                    <span class="ico_addressbook ico_download"></span>샘플 파일
+                    다운로드
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</script>
+
+<script type="text/template" id="import-loading-template">
+    <div class="layer_alert layer_loading2">
+        <div class="layer_body">
+            <div class="wrap_alert">
+                <span class="ico_loading">
+                    <img src="img/ico_loading.png" class="thumb_g" alt="">
+                </span>
+                <span class="txt_loading">주소록을 가져오는 중입니다.</span>
+                <span class="desc_loading">0 / <%- data.maxCount %></span></div>
+            <div class="wrap_btn">
+                <button type="button" class="btn_comm btn_type1">취소</button>
+            </div>
+        </div>
+    </div>
+</script>
+

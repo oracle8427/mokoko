@@ -12,7 +12,8 @@
             'backbone.queryparams': 'js/lib/backbone.queryparams-0.4.0.custom',
             'jquery.ui': 'js/lib/jquery-ui-1.11.4/jquery-ui',
             'jquery.dateFormat': 'js/lib/jquery-dateFormat-1.0.2',
-            'jquery.dateFormat.i18n': 'js/lib/jquery-dateFormat-1.0.2-i18n'
+            'jquery.dateFormat.i18n': 'js/lib/jquery-dateFormat-1.0.2-i18n',
+            'jquery.csv': 'js/lib/jquery.csv'
         },
         shim: {
             backbone: {
@@ -35,13 +36,15 @@
             'jquery.dateFormat': {
                 deps: ['jquery']
             },
+            'jquery.csv': {
+                deps: ['jquery']
+            },
             app: {
-                deps: ['jquery.ui', 'underscore', 'backbone', 'marionette', 'backbone.routefilter', 'backbone.queryparams']
+                deps: ['jquery.ui','jquery.csv', 'underscore', 'backbone', 'marionette', 'backbone.routefilter', 'backbone.queryparams']
             },
         },
         waitSeconds: 0
     });
-
 
     require(['jquery'], function ($) {
         $.ajaxSetup({

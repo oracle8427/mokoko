@@ -1,5 +1,6 @@
 package mokoko.contact;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import mokoko.contacts.Contact;
 import mokoko.contacts.ContactService;
 import mokoko.contacts.Group;
@@ -76,6 +77,25 @@ public class ContactController {
         contactService.moveToGroup(contactIDList, groupIDList);
 
         return ResponseEntity.ok(contactIDList);
+    }
+
+    @PostMapping(value = "import", headers = "Content-Type=application/x-www-form-urlencoded")
+    public ResponseEntity<?> importContact(@RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+        Map<String, List<Contact>> map = JacksonJsonUtil.readValue(model, new TypeReference<Map<String, List<Contact>>>() {
+        });
+
+        List<Contact> contacts = map.get("contacts");
+        if (contacts == null || contacts.size() == 0)
+            throw new BadRequestException("contacts is null: " + model);
+
+        for (Contact contact : contacts) {
+            contact.setOwner(username);
+            contactService.createContact(contact);
+        }
+        return ResponseEntity.ok(map);
     }
 
 }

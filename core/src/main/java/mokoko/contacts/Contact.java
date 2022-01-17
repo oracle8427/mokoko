@@ -16,6 +16,10 @@ public class Contact extends ContactEntity {
         return groups;
     }
 
+    public void setOwner(String ownerID) {
+        this.userID = ownerID;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -15,6 +15,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.listenTo(app.vent, 'show:alert-layer', this.showAlertLayer);
                 this.listenTo(app.vent, 'show:confirm-layer', this.showConfirmLayer);
                 this.listenTo(app.vent, 'show:toast-layer', this.showToastLayer);
+                this.listenTo(app.vent, 'show:toast-footer-layer', this.showToastFooterLayer);
             },
             template: function () {
                 var html, compiledTemplate = contact.SidebarView.compiledTemplate;
@@ -31,6 +32,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 groupLayerRegion: 'div#groupLayerRegion',
                 alertLayerRegion: 'div#alertLayerRegion',
                 toastLayerRegion: 'div#toastLayerRegion',
+                toastFooterLayerRegion: 'div#toastFooterLayerRegion',
                 groupRemoveLayerRegion: 'div#groupRemoveLayerRegion'
             },
             onRender: function () {
@@ -99,6 +101,13 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
                 this.toastLayerRegion.show(toastLayerView);
                 toastLayerView.$el.appendTo(app.rootElement);
+            },
+            showToastFooterLayer: function (attributes) {
+                var toastFooterLayerView = new contact.ToastFooterLayerView({
+                    model: new Backbone.Model(attributes)
+                });
+                this.toastFooterLayerRegion.show(toastFooterLayerView);
+                toastFooterLayerView.$el.appendTo(app.rootElement);
             },
             getContactCount: function (condition) {
                 if (!condition)
@@ -286,17 +295,21 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
             },
             onShow: function () {
-                app.vent.trigger('show:dimmed');
+                app.dimmedLayer.showDimmed();
             },
             onClose: function () {
-                app.vent.trigger('hide:dimmed');
+                app.dimmedLayer.hideDimmed();
             }
         });
 
         contact.GroupRemoveLayerView = Backbone.Marionette.ItemView.extend({
             template: function (data) {
-                var html = contact.$template.filter('#group-remove-layer-template').html();
-                var compiledTemplate = _.template(html);
+                var html, compiledTemplate = contact.GroupRemoveLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#group-remove-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.GroupRemoveLayerView.compiledTemplate = compiledTemplate;
+                }
                 html = compiledTemplate({
                     data: data,
                 });
@@ -333,17 +346,21 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
             },
             onShow: function () {
-                app.vent.trigger('show:dimmed');
+                app.dimmedLayer.showDimmed();
             },
             onClose: function () {
-                app.vent.trigger('hide:dimmed');
+                app.dimmedLayer.hideDimmed();
             }
         });
 
         contact.ConfirmLayerView = Backbone.Marionette.ItemView.extend({
             template: function (data) {
-                var html = contact.$template.filter('#confirm-layer-template').html();
-                var compiledTemplate = _.template(html);
+                var html, compiledTemplate = contact.ConfirmLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#confirm-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ConfirmLayerView.compiledTemplate = compiledTemplate;
+                }
                 html = compiledTemplate({
                     data: data,
                 });
@@ -354,24 +371,36 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 var $closeButtons = this.$el.find('button.btn_close').add(this.$el.find('button.btn_type1'));
                 $closeButtons.click(function (event) {
                     event.preventDefault() && event.stopPropagation();
+                    if ('contact-import-loading' === self.model.get('action')) {
+                        if (_.isFunction(self.model.get('cancel')))
+                            self.model.get('cancel')();
+                    }
                     self.close();
                 });
 
-                this.$el.find('button.btn_type2').click(function (event) {
+                var $confirmButton = this.$el.find('button.btn_type2');
+                $confirmButton.click(function (event) {
                     event.preventDefault() && event.stopPropagation();
+                    self.close();
                     if ('move-to-trash' === self.model.get('action')) {
                         if (_.isFunction(self.model.get('callback')))
                             self.model.get('callback')();
+                    } else if ('contact-import-loading' === self.model.get('action')) {
+                        if (_.isFunction(self.model.get('confirm')))
+                            self.model.get('confirm')();
                     }
-                    self.close();
                 });
             }
         });
 
         contact.AlertLayerView = Backbone.Marionette.ItemView.extend({
             template: function (data) {
-                var html = contact.$template.filter('#alert-layer-template').html();
-                var compiledTemplate = _.template(html);
+                var html, compiledTemplate = contact.AlertLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#alert-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.AlertLayerView.compiledTemplate = compiledTemplate;
+                }
                 html = compiledTemplate({
                     data: data,
                 });
@@ -382,6 +411,8 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 var $closeButtons = this.$el.find('button.btn_close').add(this.$el.find('button.btn_type2'));
                 $closeButtons.click(function (event) {
                     event.preventDefault() && event.stopPropagation();
+                    if (_.isFunction(self.model.get('callback')))
+                        self.model.get('callback')();
                     self.close();
                 });
             }
@@ -389,8 +420,12 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
         contact.ToastLayerView = Backbone.Marionette.ItemView.extend({
             template: function (data) {
-                var html = contact.$template.filter('#toast-layer-template').html();
-                var compiledTemplate = _.template(html);
+                var html, compiledTemplate = contact.ToastLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#toast-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ToastLayerView.compiledTemplate = compiledTemplate;
+                }
                 html = compiledTemplate({
                     data: data,
                 });
@@ -406,6 +441,32 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 setTimeout(function () {
                     self.close();
                 }, 3000);
+            }
+        });
+
+        contact.ToastFooterLayerView = Backbone.Marionette.ItemView.extend({
+            template: function (data) {
+                var html, compiledTemplate = contact.ToastFooterLayerView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#toast-footer-layer-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ToastFooterLayerView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate({
+                    data: data,
+                });
+                return html;
+            },
+            onRender: function () {
+                var self = this;
+                this.$el.find('button.btn_close').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    self.close();
+                });
+
+                setTimeout(function () {
+                    self.close();
+                }, 5000);
             }
         });
 
@@ -725,20 +786,267 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             },
         });
 
-
         contact.ContactLayerView = Backbone.Marionette.ItemView.extend({
-            template: function () {
+            className: 'layer_comm layer_type2',
+            attributes: {
+                style: "user-select: none; z-index:1000"
+            },
+            template: function (data) {
                 var html, compiledTemplate = contact.ContactLayerView.compiledTemplate;
                 if (!compiledTemplate) {
                     html = contact.$template.filter('#contact-layer-template').html();
                     compiledTemplate = _.template(html);
                     contact.ContactLayerView.compiledTemplate = compiledTemplate;
                 }
-                html = compiledTemplate({});
+                html = compiledTemplate({
+                    contact: data.contactModel.toJSON(),
+                    isNew: data.isNew,
+                    templates: contact.ContactLayerView.templates,
+                    groupCollection: contact.groupCollection
+                });
                 return html;
             },
-            onRender: function () {
+            initialize: function (options) {
+                this.contactModel = this.model.get('contactModel');
+                this.isNew = this.model.get('isNew');
+                this.contactExpansions = this.contactModel.get('contactExpansions');
+                if (!contact.ContactLayerView.templates)
+                    contact.ContactLayerView.templates = {}
 
+                var templates = contact.ContactLayerView.templates;
+                var html;
+                if (!_.has(templates, 'email')) {
+                    html = contact.$template.filter('#email-input-template').html();
+                    templates['email'] = _.template(html);
+                }
+                if (!_.has(templates, 'phone')) {
+                    html = contact.$template.filter('#phone-input-template').html();
+                    templates['phone'] = _.template(html);
+                }
+                if (!_.has(templates, 'specialDay')) {
+                    html = contact.$template.filter('#special-day-input-template').html();
+                    templates['specialDay'] = _.template(html);
+                }
+                if (!_.has(templates, 'sns')) {
+                    html = contact.$template.filter('#sns-input-template').html();
+                    templates['sns'] = _.template(html);
+                }
+                if (!_.has(templates, 'msg')) {
+                    html = contact.$template.filter('#msg-input-template').html();
+                    templates['msg'] = _.template(html);
+                }
+                if (!_.has(templates, 'groupItem')) {
+                    html = contact.$template.filter('#contact-layer-group-item-template').html();
+                    templates['groupItem'] = _.template(html);
+                }
+
+                if (!_.has(templates, 'address')) {
+                    html = contact.$template.filter('#address-input-template').html();
+                    templates['address'] = _.template(html);
+                }
+            },
+            onRender: function () {
+                var self = this;
+
+                // 옵션 상자 선택
+                this.$el.on('click', 'button.btn_opt', function (event) {
+                    event.preventDefault() && event.stopPropagation();
+
+                    // 옵션 상자가 열린 상태에서 다른 옵션 상자 클릭 시, 숨기기
+                    self.$el.find('div.opt_comm').removeClass('opt_open');
+
+                    // 옵션 상자 열기
+                    var $this = $(this);
+                    var $optionBox = $this.closest('div.opt_comm')
+                    $optionBox.addClass('opt_open');
+
+                    if (this.value === 'groupSettings') {
+                        app.dimmedLayer.showCompositeDimmed(this, 1001);
+                        return false;
+                    }
+
+                    // 다른 영역 클릭 시, 숨기기
+                    $(app.rootElement).one('click', function (event) {
+                        event.preventDefault() && event.stopPropagation();
+                        $optionBox.removeClass('opt_open');
+                        return false;
+                    });
+                    return false;
+                });
+
+                this.$el.on('click', 'ul.list_chk li.option', function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    var $this = $(this);
+
+                    var $radioBox = $this.find('.inp_chk');
+                    $radioBox.prop('checked', true);
+                    var phoneType = $radioBox.val();
+                    var displayText = $radioBox.next('label:first').text();
+
+                    var $selectedType = $this.closest('div.opt_comm').find('span.selected_type');
+                    $selectedType.text(displayText);
+                    $selectedType.data('type', phoneType)
+                    $(app.rootElement).click();
+                    return false;
+                });
+
+                this.$el.find('ul#contactLayerGroups li.group').click(function (event) {
+                    event.stopPropagation();
+                });
+
+                var $groupCreateBox = this.$el.find('#groupCreateBox');
+                this.$el.find('#showGroupCreateBox').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    $groupCreateBox.show();
+                });
+                var $groupName = $groupCreateBox.find('#tfWriteGroup');
+                $groupName.keyup(_.debounce(function (event) {
+                    event.preventDefault && event.stopPropagation();
+                    var models = contact.groupCollection.findGroupModel('name', this.value)
+                    if (models) {
+                        if ($groupCreateBox.find('p.desc_error').length === 0)
+                            $groupCreateBox.append($('<p class="desc_error">중복된 그룹명입니다.</p>'));
+                    } else {
+                        $groupCreateBox.find('p.desc_error').remove();
+                    }
+                }, 100));
+
+                $groupCreateBox.find('button.btn_add').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    var groupName = $groupName.val().trim();
+                    if (!groupName) {
+                        var zIndex = 1002;
+                        app.dimmedLayer.showCompositeDimmed(this, zIndex);
+                        app.vent.trigger('show:alert-layer', {
+                            messages: ['그룹명을 입력해주세요.'],
+                            callback: function () {
+                                app.dimmedLayer.closeCompositeDimmed(zIndex);
+                            }
+                        });
+                        return false;
+                    }
+
+                    var groupModel = new contact.GroupModel({
+                        name: groupName,
+                        sortNumber: _.last(contact.groupCollection.models).get('sortNumber') + 1
+                    });
+                    contact.groupCollection.create(groupModel, {
+                        success: function (model, response, xhr) {
+                            var $groups = self.$el.find('ul#contactLayerGroups');
+                            var html = contact.ContactLayerView.templates['groupItem']({groupModel: model});
+                            $groups.append(html);
+                            $groups.find('#inpWriteGroup' + model.id).prop('checked', true);
+                            app.vent.trigger('show:toast-layer', {
+                                message: '그룹이 생성되었습니다.'
+                            });
+                        }
+                    });
+                });
+
+                this.$el.find('button.group_save').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    app.dimmedLayer.closeCompositeDimmed(1001);
+
+                    var $checkedBoxes = self.$el.find('input[name=inpWriteGroup]:checked');
+                    var models = _.map($checkedBoxes, function (box) {
+                        return contact.groupCollection.findGroupModel('id', box.value).get('name')
+                    });
+                    var names = models.length > 0 ? models.join(',') : '그룹설정';
+                    self.$el.find('span.group_names').text(names);
+
+                    $(this).closest('div.opt_comm').removeClass('opt_open');
+                    $groupCreateBox.hide();
+                    return false;
+                });
+
+                this.$el.find('button.btn_addition').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    var $mails = self.$el.find('input[name=tfWriteMail2]')
+                    var $phones = self.$el.find('input[name=tfWritePhone]')
+                    var $days = self.$el.find('input[name=tfWriteDay]')
+                    var $sns = self.$el.find('input[name=tfWriteLink]')
+                    var $messengers = self.$el.find('input[name=tfWriteMsn]')
+                    var $locations = self.$el.find('input[name=tfWriteLocation]')
+
+                    if (($mails.length + $phones.length + $days.length +
+                        $sns.length + $messengers.length + $locations.length) >= 30) {
+                        app.dimmedLayer.closeCompositeDimmed(1001);
+                        app.vent.trigger('show:alert-layer', {
+                            messages: ['항목 추가는 이메일/전화번호/기념일/SNS/메신저/주소 모두 합하여 30개까지만 가능합니다.'],
+                            callback: function () {
+                                app.dimmedLayer.hideDimmed();
+                            }
+                        });
+                    }
+                    self.appendInputRegion(this.value);
+                });
+
+                // 저장
+                var $saveButton = this.$el.find('button.btn_type2');
+                $saveButton.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    var fields = {};
+
+                    var firstname = self.$el.find('#tfWriteFirstName').val().trim();
+                    if (!firstname) {
+                        app.dimmedLayer.showCompositeDimmed(this, 1001)
+                        app.vent.trigger('show:alert-layer', {
+                            messages: ['이름을 입력해 주세요.'],
+                            callback: function () {
+                                app.dimmedLayer.closeCompositeDimmed(1001);
+                            }
+                        });
+                    }
+                    if (firstname !== self.contactModel.get('firstname'))
+                        fields['firstname'] = firstname;
+
+                    var lastname = self.$el.find('#tfWriteLastName').val().trim();
+                    if (lastname && lastname !== self.contactModel.get('lastname'))
+                        fields['lastname'] = lastname;
+
+                    var isImportant = self.$el.find('#inpWriteFav').is(':checked') ? 1 : 0;
+                    if (isImportant !== self.contactModel.get('important'))
+                        fields['important'] = isImportant;
+
+                    // ▼ more
+                    var nickname = self.$el.find('#tfWriteNick').val().trim();
+                    if (nickname && nickname !== self.contactModel.get('nickname'))
+                        fields['nickname'] = nickname;
+                });
+
+                // 닫기, 취소
+                var $closeButton = this.$el.find('button#contactLayerClose').add(this.$el.find('button#contactLayerCancel'));
+                $closeButton.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    self.close();
+                });
+
+                // 더보기
+                var $moreButton = this.$el.find('button.btn_more');
+                $moreButton.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    self.$el.find('div.bundle_address').addClass('bundle_open');
+                    $(this).hide();
+                })
+                $moreButton.click();
+            },
+            appendInputRegion: function (epicenter) {
+                var templates = contact.ContactLayerView.templates;
+                if (_.has(templates, epicenter)) {
+                    var $inputs = this.$el.find('.info_address[data-epicenter=' + epicenter + ']');
+                    var $html = $(templates[epicenter]({
+                        contactExpansion: {},
+                        index: $inputs.length
+                    }));
+                    $(_.last($inputs)).after($html);
+                    $html.find('input:text')[0].focus();
+                }
+            },
+            onShow: function () {
+                app.dimmedLayer.showDimmed();
+            },
+            onClose: function () {
+                app.dimmedLayer.hideDimmed();
             }
         });
 
@@ -761,6 +1069,9 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 contactListSearchRegion: 'div#contactListSearchRegion',
                 contactListRegion: 'div#contactListRegion',
                 contactLayerRegion: 'div#contactLayerRegion',
+                importHeaderRegion: 'div#importHeaderRegion',
+                importContentRegion: 'div#importContentRegion',
+                importLoadingRegion: 'div#importLoadingRegion'
             },
             initialize: function (options) {
                 this.contactCollection = options.contactCollection;
@@ -768,11 +1079,16 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.listenTo(app.vent, 'show:contact-list', this.showContactList);
                 this.listenTo(app.vent, 'show:no-search-result', this.showNoSearchResult);
                 this.listenTo(app.vent, 'show:contact-layer', this.showContactLayer);
+                this.listenTo(app.vent, 'show:import-loading', this.showImportLoading);
             },
             onRender: function () {
                 this.contactListSearchRegion.show(new contact.ContactListSearchView({
                     contactCollection: this.contactCollection
                 }));
+                this.importHeaderRegion.show(new contact.ImportHeaderView());
+
+                var importContentView = new contact.ImportContentView();
+                this.importContentRegion.show(importContentView);
             },
             showContactList: function (contactCollection) {
                 if (contactCollection)
@@ -787,9 +1103,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
                 this.contactListRegion.show(contactListView);
                 contactListView.$el.appendTo('#' + this.attributes.id);
+                this.showContactListRegion();
             },
             showContactLayer: function (contactModel) {
-                var model = contactModel ? contactModel : new contact.ContactModel()
+                var model = contact.contactCollection.models[0];
                 var contactLayerView = new contact.ContactLayerView({
                     model: new Backbone.Model({
                         contactModel: model,
@@ -803,6 +1120,275 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 var noSearchResultView = new contact.NoSearchResultView();
                 this.contactListRegion.show(noSearchResultView);
                 noSearchResultView.$el.appendTo('#' + this.attributes.id);
+            },
+            showContactListRegion: function () {
+                this.contactListSearchRegion.$el.show();
+                this.importHeaderRegion.$el.hide();
+                this.importContentRegion.$el.hide();
+            },
+            showImportRegion: function () {
+                this.contactListSearchRegion.$el.hide();
+                this.contactListRegion.$el && this.contactListRegion.$el.hide();
+                this.importHeaderRegion.$el.show();
+                this.importContentRegion.$el.show();
+            },
+            showImportLoading: function (attributes) {
+                this.importLoadingRegion.show(new contact.ImportLoadingView({
+                    model: new Backbone.Model(attributes)
+                }));
+            }
+        });
+
+        contact.ImportHeaderView = Backbone.Marionette.ItemView.extend({
+            className: 'article_head',
+            template: function () {
+                var html, compiledTemplate = contact.ImportHeaderView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#import-header-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ImportHeaderView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate();
+                return html;
+            },
+        });
+
+        contact.ImportLoadingView = Backbone.Marionette.ItemView.extend({
+            template: function (data) {
+                var html, compiledTemplate = contact.ImportLoadingView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#import-loading-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ImportLoadingView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate({
+                    data: data,
+                });
+                return html;
+            },
+            initialize: function () {
+                this.listenTo(this.model, 'change', function () {
+                    this.$count.text(this.model.get('importCount') + ' / ' + this.model.get('maxCount'));
+                })
+                this.listenTo(app.vent, 'increment:import-count', function (importCount) {
+                    this.model.set('importCount', this.model.get('importCount') + importCount)
+                });
+                this.listenTo(app.vent, 'complete:import-loading', function () {
+                    app.vent.trigger('show:toast-footer-layer', {
+                        message: '주소록 가져오기가 완료되었습니다.',
+                        contact: {
+                            importCount: this.model.get('importCount'),
+                            maxCount: this.model.get('maxCount')
+                        }
+                    });
+                    this.close();
+                });
+
+                this.listenTo(app.vent, 'close:import-loading', function () {
+                    this.close();
+                });
+
+            },
+            onRender: function () {
+                var self = this;
+                this.$count = this.$el.find('span.desc_loading');
+                var $cancel = this.$el.find('button.btn_type1');
+                $cancel.click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    app.vent.trigger('pause:import-contact');
+                    app.dimmedLayer.showDimmed();
+                    app.vent.trigger('show:confirm-layer', {
+                        action: 'contact-import-loading',
+                        messages: [
+                            '주소록 가져오기를 취소하시겠습니까?'
+                        ],
+                        confirm: function () {
+                            app.dimmedLayer.hideDimmed();
+                            self.close();
+                            app.vent.trigger('stop:import-contact');
+                        },
+                        cancel: function () {
+                            app.vent.trigger('continue:import-contact');
+                            app.dimmedLayer.hideDimmed();
+                        }
+                    });
+                });
+            }
+        });
+
+        contact.ImportContentView = Backbone.Marionette.ItemView.extend({
+            initialize: function () {
+                this.csvModel = new contact.CSVModel();
+                this.listenTo(app.vent, 'continue:import-contact', function () {
+                    this.csvModel.set('pause', false);
+                    this.save();
+                });
+                this.listenTo(app.vent, 'pause:import-contact', function () {
+                    this.csvModel.set('pause', true);
+                });
+
+                this.listenTo(app.vent, 'stop:import-contact', function () {
+                    this.csvModel.clear();
+                    this.render();
+                });
+
+                this.listenTo(app.vent, 'complete:import-contact', function () {
+                    app.vent.trigger('complete:import-loading');
+                    app.vent.trigger('stop:import-contact');
+                });
+
+            },
+            template: function () {
+                var html, compiledTemplate = contact.ImportContentView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#import-content-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ImportContentView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate();
+                return html;
+            },
+            onRender: function () {
+                var self = this;
+                var $fileName = this.$el.find('span#fileName');
+                var $file = this.$el.find('#inpFile');
+                $file.change(function (event) {
+                    event.stopPropagation();
+                    var files = event.target.files;
+                    self.file = files[0];
+                    $fileName.text(self.file.name);
+                });
+
+                this.$el.find('button.btn_comm').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    if (!self.file || (self.file.name !== $fileName.text()))
+                        return false;
+
+                    var reader = new FileReader();
+                    reader.readAsText(self.file, "EUC-KR");
+                    reader.onload = function (event) {
+                        var csv = event.target.result;
+                        var csvRecords = $.csv.toArrays(csv);
+                        if (!csvRecords || csvRecords.length === 0)
+                            return false;
+
+                        var csvModel = self.csvModel;
+                        csvModel.set(csvModel.defaults(), {silent: true});
+                        var contacts = csvModel.get('contacts');
+                        var headers = csvModel.parseHeader(csvRecords[0]);
+                        _.each(csvRecords, function (record, recordIndex) {
+                            if (recordIndex === 0)
+                                return; // skipping headers
+
+                            var contactProps = {
+                                contactExpansions: []
+                            }
+                            var expansionProps = {
+                                email: [],
+                                phone: [],
+                                specialDay: [],
+                                sns: [],
+                                messenger: [],
+                                address: []
+                            }
+
+                            // bind properties contactProps, expansionProps
+                            _.each(headers, function (header, i) {
+                                if (header) {
+                                    if (_.has(expansionProps, header))
+                                        expansionProps[header].push(record[i]);
+                                    else
+                                        contactProps[header] = record[i];
+                                }
+                            })
+
+                            // Find the maximum array length from expansionProps.
+                            var maxLength = _.max(expansionProps, 'length').length || 0;
+                            for (var i = 0; i < maxLength; i++) {
+                                var expansion = _.object(
+                                    _.keys(expansionProps), // ['email', 'phone', 'specialDay' ...]
+                                    _.map(expansionProps, _.property(i)) // return email[i], phone[i], specialDay[i]
+                                );
+
+                                _.each(expansion, function (value, prop) {
+                                    if (value && csvModel.hasOption(prop)) {
+                                        var pivot = value.indexOf(',');
+                                        if (pivot > 0) {
+                                            var optionName = csvModel.optionName(prop);
+                                            expansion[optionName] = csvModel.optionValue(prop, value.substring(pivot + 1).trim());
+                                            value = value.substring(0, pivot).trim();
+                                        }
+                                    } else {
+                                        value = value ? value.trim() : value;
+                                    }
+                                    expansion[prop] = value;
+                                });
+                                contactProps.contactExpansions.push(expansion);
+                            }
+                            contacts.push(contactProps);
+                        }); // _.each(csvRecords...
+
+                        self.importContacts();
+                    };
+                }); // click event
+            },
+            importContacts: function () {
+                var contacts = this.csvModel.get('contacts');
+                if (!contacts || contacts.length === 0)
+                    return;
+
+                app.vent.trigger('show:import-loading', {
+                    importCount: 0,
+                    maxCount: contacts.length
+                });
+                this.save();
+            },
+            save: function () {
+                var contacts = this.csvModel.get('contacts');
+                if (this.csvModel.get('pause') || contacts.length === 0)
+                    return;
+
+                var buffer = []
+                while (buffer.length < this.csvModel.get('fetchCount')) {
+                    var item = contacts.shift();
+                    if (!item)
+                        break;
+                    buffer.push(item);
+                }
+
+                if (buffer.length === 0)
+                    return;
+
+                var self = this;
+                new Backbone.Model().save({
+                    contacts: buffer
+                }, {
+                    url: _.result(this.csvModel, 'urlRoot') + '/import',
+                    async: false,
+                    complete: function () {
+                        app.vent.trigger('increment:import-count', buffer.length);
+                        if (contacts.length === 0) {
+                            app.vent.trigger('fetch:contact-count', ['all']);
+                            app.vent.trigger('complete:import-contact');
+                            return;
+                        }
+                        setTimeout(() => {
+                            self.save();
+                        }, 100);
+                    },
+                    error: function () {
+                        app.vent.trigger('stop:import-contact');
+                        app.vent.trigger('close:import-loading');
+                        app.vent.trigger('fetch:contact-count', ['all']);
+                        app.vent.trigger('show:alert-layer', {
+                            messages: [
+                                '주소록 불러오기 중 오류가 발생했어요.',
+                                '문제가 계속되면 문의하기를 해주세요.'
+                            ]
+                        });
+                    }
+                })
+
             }
         });
 

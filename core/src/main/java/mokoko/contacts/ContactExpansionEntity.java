@@ -3,16 +3,16 @@ package mokoko.contacts;
 public class ContactExpansionEntity {
 
     private int id;
-    private int contactID;
+    protected int contactID;
     private String phone;
-    private String phoneType;
+    protected String phoneType;
     private String messenger;
     private String address;
-    private String addressType;
+    protected String addressType;
     private String specialDay;
-    private String specialDayType;
+    protected String specialDayType;
     private String sns;
-    private String snsType;
+    protected String snsType;
     private String email;
     private int sortNumber;
     private String created;

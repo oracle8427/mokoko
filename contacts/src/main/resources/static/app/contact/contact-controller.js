@@ -44,7 +44,10 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
 
                     }
                 });
-            }
+            },
+            importContact: function () {
+                this.contentLayout.showImportRegion();
+            },
         });
 
         contact.addInitializer(function (options) {

@@ -3,7 +3,7 @@ package mokoko.contacts;
 public class ContactEntity {
 
     private int id;
-    private String userID;
+    protected String userID;
     private String fullName;
     private String firstname;
     private String lastname;
@@ -97,7 +97,7 @@ public class ContactEntity {
                 ", position='" + position + '\'' +
                 ", sortNumber=" + sortNumber +
                 ", notes='" + notes + '\'' +
-                ", important='" + important + '\'' +
+                ", important=" + important +
                 '}';
     }
 
@@ -121,6 +121,9 @@ public class ContactEntity {
         private int important;
 
         public ContactEntity build() {
+            if (fullName == null || fullName.trim().length() == 0) {
+                this.fullName = (lastname == null || lastname.trim().length() == 0) ? firstname : lastname + firstname;
+            }
             return new ContactEntity(
                     id, userID, fullName, firstname, lastname,
                     nickname, birth, organization, position, sortNumber,

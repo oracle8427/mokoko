@@ -36,4 +36,6 @@ public interface ContactMapper {
 
     int insertContactExpansion(ContactExpansionEntity contactExpansion);
 
+    int insertContactExpansions(List<? extends ContactExpansionEntity> contactExpansions);
+
 }

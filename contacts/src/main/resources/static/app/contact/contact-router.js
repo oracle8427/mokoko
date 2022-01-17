@@ -9,7 +9,8 @@ define(['app', 'app/app-init', 'app/contact/contact-controller'], function (app)
                     '': 'contacts',
                     'groups/:id': 'groupContacts',
                     'recently': 'recently',
-                    'important': 'important'
+                    'important': 'important',
+                    'import': 'importContact',
                 },
                 before: function () {
                     app.startSubModule('contact', {
@@ -40,9 +41,17 @@ define(['app', 'app/app-init', 'app/contact/contact-controller'], function (app)
                     app.log(params);
 
                 },
-
                 important: function (params) {
                     app.log(params);
+                },
+                importContact: function () {
+                    if (!app.contact.controller) {
+                        app.module('contact').once('start', function () {
+                            app.contact.controller.importContact();
+                        });
+                    } else {
+                        app.contact.controller.importContact();
+                    }
                 },
 
             });

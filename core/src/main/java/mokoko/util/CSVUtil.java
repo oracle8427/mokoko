@@ -24,19 +24,24 @@ public class CSVUtil {
     }
 
     public static List<Map<String, String>> parseCSV(Reader reader) throws IOException {
+        CSVParser parser = parse(reader);
+        List<Map<String, String>> list = new ArrayList<>();
+        for (CSVRecord record : parser.getRecords()) {
+            Map<String, String> recordMap = record.toMap();
+            list.add(recordMap);
+        }
+        parser.close();
+        return list;
+    }
+
+    public static CSVParser parse(Reader reader) throws IOException {
         BufferedReader bufferedReader;
         if (reader instanceof BufferedReader)
             bufferedReader = (BufferedReader) reader;
         else
             bufferedReader = new BufferedReader(reader);
 
-        CSVParser parser = new CSVParser(bufferedReader, CSVFormat.Builder.create().setHeader().build());
-        List<Map<String, String>> list = new ArrayList<>();
-        for (CSVRecord record : parser.getRecords()) {
-            Map<String, String> recordMap = record.toMap();
-            list.add(recordMap);
-        }
-        return list;
+        return new CSVParser(bufferedReader, CSVFormat.Builder.create().setHeader().build());
     }
 
 
