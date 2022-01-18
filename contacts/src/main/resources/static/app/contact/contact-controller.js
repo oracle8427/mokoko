@@ -7,6 +7,11 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 app.vent.trigger('show:overlay-loading');
                 contact.groupCollection = new contact.GroupCollection();
                 contact.contactCollection = new contact.ContactCollection();
+                contact.contactGroupCollection = new contact.ContactCollection();
+                contact.contactCollection.fetch({
+                    silent: true,
+                    async: false
+                });
                 this.showSidebarView();
                 this.showContentLayout();
                 app.vent.trigger('hide:overlay-loading');
@@ -25,28 +30,28 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 this.contentLayout = new contact.ContentLayout({
                     contactCollection: contact.contactCollection
                 });
-                app.contentRegion.show(this.contentLayout);
             },
             contacts: function () {
-                contact.contactCollection.fetch({
-                    silent: true
-                });
+                app.vent.trigger('show:contact-list');
             },
             groupContacts: function (groupID, params) {
                 if (!groupID)
                     return;
 
                 params = _.extend({'groupID': groupID}, params)
-                contact.contactCollection.fetch({
+                contact.contactGroupCollection.fetch({
                     silent: true,
-                    url: contact.contactCollection.url + '?' + $.param(params),
+                    url: contact.contactGroupCollection.url + '?' + $.param(params),
                     success: function (collection, models, xhr) {
-
+                        app.vent.trigger('show:contact-list', contact.contactGroupCollection);
                     }
                 });
             },
             importContact: function () {
                 this.contentLayout.showImportRegion();
+            },
+            exportContact: function () {
+                this.contentLayout.showExportRegion();
             },
         });
 

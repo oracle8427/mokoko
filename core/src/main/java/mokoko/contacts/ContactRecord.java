@@ -9,7 +9,7 @@ public class ContactRecord {
     public static final String PHONE_NUMBER = "Phone Number";
     public static final String DATE_OF_BIRTH = "Date of Birth";
     public static final String ANNIVERSARY = "Anniversary";
-    public static final String SNS = "Anniversary";
+    public static final String SNS = "SNS";
     public static final String MSG = "Messenger";
     public static final String ADDRESS = "Address";
     public static final String COMPANY = "Company";

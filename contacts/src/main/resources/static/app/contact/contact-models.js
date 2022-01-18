@@ -70,7 +70,7 @@ define(['app'], function (app) {
             },
             search: function (keyword) {
                 return _.filter(this.models, function (model) {
-                    return model.get('fullName').indexOf(keyword) > -1 ||
+                    return (_.has(model, 'fullName') && model.get('fullName').indexOf(keyword) > -1) ||
                         function () {
                             var expansions = model.get('contactExpansions');
                             for (var i = 0; i < expansions.length; i++) {
@@ -93,48 +93,59 @@ define(['app'], function (app) {
                     fetchCount: 20,
                 }
             },
-            contactExpansionOptions: {
+            csvRecordOptions: {
                 'phone': {
-                    'default': 'home',
-                    '집': 'home',
-                    '직장': 'company',
-                    '휴대폰': 'mobile',
-                    '팩스': 'fax',
-                    '기타': 'etc',
-
+                    'home': '집',
+                    'company': '직장',
+                    'mobile': '휴대폰',
+                    'fax': '팩스',
+                    'etc': '기타',
                 },
                 'specialDay': {
-                    'default': 'anniversary',
-                    '기념일': 'anniversary',
-                    '기타': 'etc'
+                    'anniversary': '기념일',
+                    'etc': '기타'
                 },
                 'sns': {
-                    'default': 'blog',
-                    '블로그': 'blog',
-                    '기타': 'etc'
+                    'blog': '블로그',
+                    'etc': '기타'
                 },
                 'address': {
-                    'default': 'home',
-                    '집': 'home',
-                    '직장': 'company',
-                    '기타': 'etc'
+                    'home': '집',
+                    'company': '직장',
+                    'etc': '기타',
                 },
             },
             initialize: function (attributes, options) {
+                this.contactExpansionOptions = {
+                    phone: _.invert(this.csvRecordOptions['phone']),
+                    specialDay: _.invert(this.csvRecordOptions['specialDay']),
+                    sns: _.invert(this.csvRecordOptions['sns']),
+                    address: _.invert(this.csvRecordOptions['address']),
+                };
+                var self = this;
+                _.each(this.contactExpansionOptions, function (values, key) {
+                    self.contactExpansionOptions[key]['default'] = self.contactExpansionOptions[key][_.keys(values)[0]];
+                });
+                _.each(this.csvRecordOptions, function (values, key) {
+                    self.csvRecordOptions[key]['default'] = self.csvRecordOptions[key][_.keys(values)[0]];
+                });
                 Backbone.Model.prototype.initialize.apply(this, arguments);
-                this.pause = false;
             },
-            hasOption: function (prop) {
+            hasProperty: function (prop) {
                 return _.has(this.contactExpansionOptions, prop);
             },
-            optionValue: function (prop, value) {
-                return this.contactExpansionOptions[prop][value] || this.contactExpansionOptions[prop]['default'];
+            propertyValue: function (prop, optionName) {
+                if (!this.hasProperty(prop))
+                    return;
+                return this.contactExpansionOptions[prop][optionName] || this.contactExpansionOptions[prop]['default'];
             },
-            optionName: function (prop) {
+            propertyTypeName: function (prop) {
                 return prop + 'Type';
             },
-            clear: function (options) {
-                Backbone.Model.prototype.clear.apply(this, options);
+            csvOptionValue: function (prop, optionName) {
+                if (!_.has(this.csvRecordOptions, prop))
+                    return;
+                return this.csvRecordOptions[prop][optionName] || this.csvRecordOptions[prop]['default'];
             },
             parseHeader: function (rowHeader) {
                 return _.map(rowHeader, function (header) {
@@ -168,6 +179,44 @@ define(['app'], function (app) {
                         return header;
                 });
             },
+            parseCSVRecord: function (model) {
+                // model === contact.ContactModel
+                var contact = {
+                    'Name': model.get('firstname'),
+                    'Last Name': model.get('lastname'),
+                    'Nickname': model.get('nickname'),
+                    'Date of Birth': model.get('birth'),
+                    'Company': model.get('organization'),
+                    'Title': model.get('position'),
+                    'Memo': model.get('notes')
+                }
+                var optionsHeader = {
+                    'email': 'Email',
+                    'phone': 'Phone Number',
+                    'specialDay': 'Anniversary',
+                    'sns': 'SNS',
+                    'messenger': 'Messenger',
+                    'address': 'Address',
+                }
+
+                var self = this;
+                _.each(model.get('contactExpansions'), function (expansion, i) {
+                    i++;
+                    _.each(expansion, function (value, prop) {
+                        if (!value || !_.has(optionsHeader, prop))
+                            return;
+                        var header = optionsHeader[prop] + i;
+                        contact[header] = value;
+                        if ('email' === prop || 'messenger' === prop) {
+                            // nothing to do
+                        } else {
+                            var optionName = expansion[self.propertyTypeName(prop)];
+                            optionName && (contact[header] += ', ' + self.csvOptionValue(prop, optionName));
+                        }
+                    })
+                });
+                return contact;
+            }
         });
 
         contact.GroupModel = Backbone.Model.extend({

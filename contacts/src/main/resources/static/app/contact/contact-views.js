@@ -1071,11 +1071,12 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 contactLayerRegion: 'div#contactLayerRegion',
                 importHeaderRegion: 'div#importHeaderRegion',
                 importContentRegion: 'div#importContentRegion',
-                importLoadingRegion: 'div#importLoadingRegion'
+                importLoadingRegion: 'div#importLoadingRegion',
+                exportHeaderRegion: 'div#exportHeaderRegion',
+                exportContentRegion: 'div#exportContentRegion',
             },
             initialize: function (options) {
                 this.contactCollection = options.contactCollection;
-                this.listenTo(this.contactCollection, 'sync', this.showContactList);
                 this.listenTo(app.vent, 'show:contact-list', this.showContactList);
                 this.listenTo(app.vent, 'show:no-search-result', this.showNoSearchResult);
                 this.listenTo(app.vent, 'show:contact-layer', this.showContactLayer);
@@ -1086,9 +1087,13 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     contactCollection: this.contactCollection
                 }));
                 this.importHeaderRegion.show(new contact.ImportHeaderView());
-
-                var importContentView = new contact.ImportContentView();
-                this.importContentRegion.show(importContentView);
+                this.importHeaderRegion.$el.hide();
+                this.importContentRegion.show(new contact.ImportContentView());
+                this.importContentRegion.$el.hide();
+                this.exportHeaderRegion.show(new contact.ExportHeaderView());
+                this.exportHeaderRegion.$el.hide();
+                this.exportContentRegion.show(new contact.ExportContentView());
+                this.exportContentRegion.$el.hide();
             },
             showContactList: function (contactCollection) {
                 if (contactCollection)
@@ -1122,15 +1127,27 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 noSearchResultView.$el.appendTo('#' + this.attributes.id);
             },
             showContactListRegion: function () {
-                this.contactListSearchRegion.$el.show();
                 this.importHeaderRegion.$el.hide();
                 this.importContentRegion.$el.hide();
+                this.exportHeaderRegion.$el.hide();
+                this.exportContentRegion.$el.hide();
+                this.contactListSearchRegion.$el.show();
             },
             showImportRegion: function () {
                 this.contactListSearchRegion.$el.hide();
                 this.contactListRegion.$el && this.contactListRegion.$el.hide();
+                this.exportHeaderRegion.$el.hide();
+                this.exportContentRegion.$el.hide();
                 this.importHeaderRegion.$el.show();
                 this.importContentRegion.$el.show();
+            },
+            showExportRegion: function () {
+                this.contactListSearchRegion.$el.hide();
+                this.contactListRegion.$el && this.contactListRegion.$el.hide();
+                this.importHeaderRegion.$el.hide();
+                this.importContentRegion.$el.hide();
+                this.exportHeaderRegion.$el.show();
+                this.exportContentRegion.$el.show();
             },
             showImportLoading: function (attributes) {
                 this.importLoadingRegion.show(new contact.ImportLoadingView({
@@ -1250,6 +1267,11 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             },
             onRender: function () {
                 var self = this;
+                this.$el.find('button#sampleFile').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    location.href = 'contacts/import/sample'
+                })
+
                 var $fileName = this.$el.find('span#fileName');
                 var $file = this.$el.find('#inpFile');
                 $file.change(function (event) {
@@ -1311,11 +1333,11 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                                 );
 
                                 _.each(expansion, function (value, prop) {
-                                    if (value && csvModel.hasOption(prop)) {
+                                    if (value && csvModel.hasProperty(prop)) {
                                         var pivot = value.indexOf(',');
                                         if (pivot > 0) {
-                                            var optionName = csvModel.optionName(prop);
-                                            expansion[optionName] = csvModel.optionValue(prop, value.substring(pivot + 1).trim());
+                                            var propertyType = csvModel.propertyTypeName(prop);
+                                            expansion[propertyType] = csvModel.propertyValue(prop, value.substring(pivot + 1).trim());
                                             value = value.substring(0, pivot).trim();
                                         }
                                     } else {
@@ -1392,5 +1414,93 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             }
         });
 
+        contact.ExportContentView = Backbone.Marionette.ItemView.extend({
+            template: function () {
+                var html, compiledTemplate = contact.ExportContentView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#export-content-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ExportContentView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate();
+                return html;
+            },
+            onRender: function () {
+                this.$el.find('button.btn_export').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    if (contact.contactCollection.models.length === 0)
+                        return false;
+                    var csvModel = new contact.CSVModel();
+
+                    var _recordHeaders = ['Name', 'Last Name', 'Nickname'];
+
+                    var cache = {};
+                    var headers = [];
+                    var records = _.map(contact.contactCollection.models, function (model) {
+                        var record = csvModel.parseCSVRecord(model);
+                        _.each(record, function (value, prop) {
+                            if (!_.has(cache, prop)) {
+                                cache[prop] = 0;
+                                headers.push(prop);
+                            }
+                        })
+                        return csvModel.parseCSVRecord(model)
+                    });
+
+                    headers = _.sortBy(headers)
+                    _.each(headers, function (header) {
+                        header.indexOf('Email') > -1 && _recordHeaders.push(header)
+                    });
+                    _.each(headers, function (header) {
+                        header.indexOf('Phone Number') > -1 && _recordHeaders.push(header)
+                    });
+                    _recordHeaders.push('Date of Birth');
+                    _.each(headers, function (header) {
+                        header.indexOf('Anniversary') > -1 && _recordHeaders.push(header)
+                    });
+                    _.each(headers, function (header) {
+                        header.indexOf('SNS') > -1 && _recordHeaders.push(header)
+                    });
+                    _.each(headers, function (header) {
+                        header.indexOf('Messenger') > -1 && _recordHeaders.push(header)
+                    });
+                    _.each(headers, function (header) {
+                        header.indexOf('Address') > -1 && _recordHeaders.push(header)
+                    });
+                    _recordHeaders.push('Company', 'Title', 'Memo');
+                    var blob = new Blob(["\uFEFF" + $.csv.fromObjects(records, {
+                        'headers': true,
+                        'sortOrder': false,
+                        'manualOrder': _recordHeaders
+                    })], {
+                        type: 'text/csv;charset=utf-8'
+                    });
+
+                    var url = URL.createObjectURL(blob);
+                    var filename = 'kakaomail_contacts_' + $.datepicker.formatDate('yymmdd', new Date()) + '.csv';
+                    var link = document.createElement('a');
+                    link.setAttribute('style', 'display:none');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    document.body.appendChild(link);
+                    link.click()
+                    link.remove();
+                });
+            }
+        });
+
+        contact.ExportHeaderView = Backbone.Marionette.ItemView.extend({
+            className: 'article_head',
+            template: function () {
+                var html, compiledTemplate = contact.ExportHeaderView.compiledTemplate;
+                if (!compiledTemplate) {
+                    html = contact.$template.filter('#export-header-template').html();
+                    compiledTemplate = _.template(html);
+                    contact.ExportHeaderView.compiledTemplate = compiledTemplate;
+                }
+                html = compiledTemplate();
+                return html;
+            },
+        });
     });
 });

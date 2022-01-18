@@ -8,12 +8,20 @@ import mokoko.contacts.GroupService;
 import mokoko.error.BadRequestException;
 import mokoko.error.NotFoundException;
 import mokoko.user.UserWrapperService;
+import mokoko.util.IOUtil;
 import mokoko.util.jackson.JacksonJsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.WebApplicationContext;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +29,8 @@ import java.util.Map;
 @RequestMapping("contacts")
 public class ContactController {
 
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -96,6 +106,29 @@ public class ContactController {
             contactService.createContact(contact);
         }
         return ResponseEntity.ok(map);
+    }
+
+    @GetMapping(value = "import/sample")
+    public void downloadSampleExcel(HttpServletResponse response) {
+        String path = "classpath:doc/kakaomail_contacts_sample.xlsx";
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            Resource resource = webApplicationContext.getResource(path);
+            response.setCharacterEncoding("UTF-8");
+            response.addHeader("Content-Length", String.valueOf(resource.contentLength()));
+            response.setContentType("application/vnd.ms-excel; charset=" + "UTF-8");
+            response.setHeader("Content-disposition", "attachment;filename=" + resource.getFilename());
+
+            in = IOUtil.newBufferedInputStream(resource.getInputStream());
+            out = IOUtil.newBufferedOutputStream(response.getOutputStream());
+            IOUtil.transfer(in, out);
+        } catch (IOException ioe) {
+            log.error("Error at ContactController.downloadSampleExcel webApplicationContext.getResource(" + path + ")", ioe);
+        } finally {
+            IOUtil.close(in);
+            IOUtil.close(out);
+        }
     }
 
 }

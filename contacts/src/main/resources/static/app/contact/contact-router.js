@@ -11,6 +11,7 @@ define(['app', 'app/app-init', 'app/contact/contact-controller'], function (app)
                     'recently': 'recently',
                     'important': 'important',
                     'import': 'importContact',
+                    'export': 'exportContact',
                 },
                 before: function () {
                     app.startSubModule('contact', {
@@ -53,7 +54,15 @@ define(['app', 'app/app-init', 'app/contact/contact-controller'], function (app)
                         app.contact.controller.importContact();
                     }
                 },
-
+                exportContact: function () {
+                    if (!app.contact.controller) {
+                        app.module('contact').once('start', function () {
+                            app.contact.controller.exportContact();
+                        });
+                    } else {
+                        app.contact.controller.exportContact();
+                    }
+                }
             });
 
             app.addInitializer(function () {

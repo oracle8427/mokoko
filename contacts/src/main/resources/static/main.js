@@ -11,9 +11,7 @@
             'backbone.routefilter': 'js/lib/backbone.routefilter-0.2.1',
             'backbone.queryparams': 'js/lib/backbone.queryparams-0.4.0.custom',
             'jquery.ui': 'js/lib/jquery-ui-1.11.4/jquery-ui',
-            'jquery.dateFormat': 'js/lib/jquery-dateFormat-1.0.2',
-            'jquery.dateFormat.i18n': 'js/lib/jquery-dateFormat-1.0.2-i18n',
-            'jquery.csv': 'js/lib/jquery.csv'
+            'jquery.csv': 'js/lib/jquery.csv.custom'
         },
         shim: {
             backbone: {
@@ -31,9 +29,6 @@
                 deps: ['jquery', 'underscore', 'backbone']
             },
             'jquery.ui': {
-                deps: ['jquery']
-            },
-            'jquery.dateFormat': {
                 deps: ['jquery']
             },
             'jquery.csv': {

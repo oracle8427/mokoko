@@ -11,6 +11,7 @@ define(['jquery', 'app', 'app/app-views'], function ($, app) {
         if (!app.overlayLayer) {
             app.overlayLayer = new app.OverlayLayer();
             app.overlayLayer.render();
+            app.overlayLayer.$el.hide();
         }
         app.debug("} // app.addInitializer(function(options) {...});");
     });

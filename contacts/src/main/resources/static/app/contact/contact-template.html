@@ -89,7 +89,7 @@
                     </a>
                 </li>
                 <li class="item_pc">
-                    <a class="link_menu" href="export">
+                    <a class="link_menu" href="#export">
                         <span class="ico_menu"><span class="ico_addressbook ico_export"></span></span>
                         <span class="txt_menu">주소록 내보내기</span></a>
                 </li>
@@ -1122,6 +1122,8 @@
     <div id="importHeaderRegion"></div>
     <div id="importContentRegion" class="article_body"></div>
     <div id="importLoadingRegion"></div>
+    <div id="exportHeaderRegion"></div>
+    <div id="exportContentRegion" class="article_body"></div>
 </script>
 
 
@@ -1180,7 +1182,7 @@
             <p class="txt_desc">4. 일부 특수문자의 경우 가져오기 시 누락될수 있습니다.</p>
             <p class="txt_desc">5. 가져오기할 데이터가 없을 경우는 열을 비워두셔야 데이터 입력에 혼선이 생기지 않습니다.</p>
             <div class="wrap_btn">
-                <button type="button" class="btn_comm btn_type1">
+                <button type="button" class="btn_comm btn_type1" id="sampleFile">
                     <span class="ico_addressbook ico_download"></span>샘플 파일
                     다운로드
                 </button>
@@ -1202,6 +1204,22 @@
                 <span class="desc_loading">0 / <%- data.maxCount %></span></div>
             <div class="wrap_btn">
                 <button type="button" class="btn_comm btn_type1">취소</button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="export-header-template">
+    <h2>주소록 내보내기</h2>
+</script>
+
+<script type="text/template" id="export-content-template">
+    <div class="inner_article">
+        <p class="desc_g">쉼표로 항목을 구분한 텍스트 파일 형식인 csv 파일로 주소록 내보내기가 가능합니다.<br>csv 파일은 아웃룩, 익스프레스에서 이용할 수 있습니다.</p>
+        <div class="wrap_content wrap_export">
+            <div class="inner_content">
+                <p class="txt_export">내보내기 버튼 클릭 시, 내 PC로 파일이 다운로드 됩니다.</p>
+                <button type="button" class="btn_comm btn_export">내보내기</button>
             </div>
         </div>
     </div>
