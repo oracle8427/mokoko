@@ -70,7 +70,7 @@ define(['app'], function (app) {
             },
             search: function (keyword) {
                 return _.filter(this.models, function (model) {
-                    return (_.has(model, 'fullName') && model.get('fullName').indexOf(keyword) > -1) ||
+                    return (model.has('fullName') && model.get('fullName').indexOf(keyword) > -1) ||
                         function () {
                             var expansions = model.get('contactExpansions');
                             for (var i = 0; i < expansions.length; i++) {

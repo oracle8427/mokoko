@@ -12,6 +12,7 @@ define(['app', 'app/app-init', 'app/contact/contact-controller'], function (app)
                     'important': 'important',
                     'import': 'importContact',
                     'export': 'exportContact',
+                    'trash': 'trash'
                 },
                 before: function () {
                     app.startSubModule('contact', {
@@ -22,28 +23,47 @@ define(['app', 'app/app-init', 'app/contact/contact-controller'], function (app)
                 contacts: function () {
                     if (!app.contact.controller) {
                         app.module('contact').once('start', function () {
-                            app.contact.controller.contacts();
+                            app.contact.controller.contacts('all');
                         });
                     } else {
-                        app.contact.controller.contacts();
+                        app.contact.controller.contacts('all');
                     }
                 },
                 groupContacts: function (groupID, params) {
-                    app.debug('contact-router.contacts(groupID, params)', groupID);
                     if (!app.contact.controller) {
                         app.module('contact').once('start', function () {
-                            app.contact.controller.groupContacts(groupID, params);
+                            app.contact.controller.groupContacts('groups', groupID, params);
                         });
                     } else {
-                        app.contact.controller.groupContacts(groupID, params);
+                        app.contact.controller.groupContacts('groups', groupID, params);
                     }
                 },
-                recently: function (params) {
-                    app.log(params);
-
+                recently: function () {
+                    if (!app.contact.controller) {
+                        app.module('contact').once('start', function () {
+                            app.contact.controller.recently('recently');
+                        });
+                    } else {
+                        app.contact.controller.recently('recently');
+                    }
                 },
-                important: function (params) {
-                    app.log(params);
+                important: function () {
+                    if (!app.contact.controller) {
+                        app.module('contact').once('start', function () {
+                            app.contact.controller.important('important');
+                        });
+                    } else {
+                        app.contact.controller.important('important');
+                    }
+                },
+                trash: function () {
+                    if (!app.contact.controller) {
+                        app.module('contact').once('start', function () {
+                            app.contact.controller.trash('trash');
+                        });
+                    } else {
+                        app.contact.controller.trash('trash');
+                    }
                 },
                 importContact: function () {
                     if (!app.contact.controller) {

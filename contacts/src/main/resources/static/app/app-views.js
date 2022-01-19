@@ -54,19 +54,19 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
         onRender: function () {
 
         },
-        showDimmed : function (zIndex) {
+        showDimmed: function (zIndex) {
             if (zIndex)
                 this.$el.css('z-index', zIndex);
             else if (this._zIndex !== this.$el.css('z-index'))
                 this.$el.css('z-index', this._zIndex)
             this.$el.show();
         },
-        hideDimmed : function () {
+        hideDimmed: function () {
             if (this._zIndex !== this.$el.css('z-index'))
                 this.$el.css('z-index', this._zIndex)
             this.$el.hide();
         },
-        showCompositeDimmed : function (el, zIndex) {
+        showCompositeDimmed: function (el, zIndex) {
             if (_.has(this.childLayer, zIndex))
                 throw new Error('Layer already exists. z-index: ' + zIndex);
             this.childLayer[zIndex] = new app.DimmedLayer();
@@ -74,7 +74,7 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
             if (zIndex)
                 this.childLayer[zIndex].showDimmed(zIndex);
         },
-        closeCompositeDimmed : function (zIndex) {
+        closeCompositeDimmed: function (zIndex) {
             if (_.has(this.childLayer, zIndex)) {
                 this.childLayer[zIndex].close();
                 delete this.childLayer[zIndex];

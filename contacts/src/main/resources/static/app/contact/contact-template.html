@@ -76,7 +76,7 @@
         <div class="box_menu">
             <ul class="list_menu">
                 <li>
-                    <a class="link_menu link_trash" href="trash">
+                    <a class="link_menu link_trash" href="#trash">
                         <span class="ico_menu"><span class="ico_addressbook ico_trash"></span></span><span
                             class="txt_menu">휴지통</span>
                     </a>
@@ -283,7 +283,7 @@
                     <span class="ico_addressbook ico_group">그룹</span>
                     <span class="txt_btn">이동</span>
                 </button>
-                <div id="groupSettingsRegion"></div>
+                <div id="groupSettingsLayerRegion"></div>
             </div>
             <button type="submit" class="btn_tool btn_del">
                 <span class="ico_addressbook ico_del"></span>
@@ -384,22 +384,17 @@
                         <div class="info_address info_phone" role="text">
                             <strong class="screen_out">전화번호</strong>
                             <span class="txt_info"><%- expansions[0].phone || '' %></span></div>
+                        <% if ('trash' !== part ) { %>
                         <div class="info_group" role="text"><strong class="screen_out">그룹</strong>
-                            <div class="wrap_bubble">
-                            <%  var groups = contactModel.get('groups');
-                                var size = _.size(groups);
-                                var limit = 2;
-                                if(size > limit) { %>
-                                    <span class="ico_bubble"><%- groups[0].name + '외 ' + size + '건' %></span>
-                            <%  } else if(size > 0) {
-                                    for (var i = 0; i < size; i++) {
-                                        if (i > limit)
-                                            break; %>
-                                        <span class="ico_bubble"><%- groups[i].name %></span>
-                            <%      }
-                                } %>
+                            <div class="wrap_bubble" id="groupsContainer-<%-contactModel.id%>">
+                                <%  if (createGroupsDisplay && _.isFunction(createGroupsDisplay)) {
+                                        _.each(createGroupsDisplay(contactModel.get('groups')), function($groupEL) { %>
+                                            <%=  $groupEL.prop('outerHTML') %>
+                                <%      });
+                                    } %>
                             </div>
                         </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -1125,7 +1120,6 @@
     <div id="exportHeaderRegion"></div>
     <div id="exportContentRegion" class="article_body"></div>
 </script>
-
 
 <script type="text/template" id="import-header-template">
     <h2>주소록 가져오기</h2>

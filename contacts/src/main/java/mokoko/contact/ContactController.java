@@ -55,9 +55,16 @@ public class ContactController {
             throw new NotFoundException("Not Found User");
 
         params.put("userID", username);
-        return params.containsKey("groupID") ?
-                contactService.getGroupContacts(params) :
-                contactService.getAllContacts(username);
+        List<Contact> contacts;
+        if (params.containsKey("groupID"))
+            contacts = contactService.getGroupContacts(params);
+        else if (params.containsKey("trash")) {
+            Group trash = groupService.getTrash();
+            params.put("groupID", trash.getId());
+            contacts = contactService.getGroupContacts(params);
+        } else
+            contacts = contactService.getAllContacts(username);
+        return contacts;
     }
 
     @PostMapping(value = "trash", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
@@ -85,8 +92,7 @@ public class ContactController {
         List<?> contactIDList = (List<?>) params.get("contactIDList");
         List<?> groupIDList = (List<?>) params.get("groupIDList");
         contactService.moveToGroup(contactIDList, groupIDList);
-
-        return ResponseEntity.ok(contactIDList);
+        return ResponseEntity.ok(params);
     }
 
     @PostMapping(value = "import", headers = "Content-Type=application/x-www-form-urlencoded")

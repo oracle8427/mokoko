@@ -16,6 +16,12 @@ public class Contact extends ContactEntity {
         return groups;
     }
 
+    private String recentDate;
+
+    public String getRecentDate() {
+        return recentDate;
+    }
+
     public void setOwner(String ownerID) {
         this.userID = ownerID;
     }
@@ -24,6 +30,7 @@ public class Contact extends ContactEntity {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("\n").append(super.toString());
+        sb.append(", recentDate='").append(recentDate).append('\'');
         if (contactExpansions != null && contactExpansions.size() > 0) {
             sb.append("\n\tcontactExpansions=[\n");
             for (ContactExpansion contactExpansion : contactExpansions)

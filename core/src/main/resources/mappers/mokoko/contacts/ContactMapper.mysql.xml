@@ -25,6 +25,7 @@
         <result property="sortNumber" column="sort_no"/>
         <result property="notes" column="notes"/>
         <result property="important" column="important"/>
+        <result property="recentDate" column="recent_date"/>
         <collection property="contactExpansions" ofType="ContactExpansion">
             <result property="id" column="contact_expansion_id"/>
             <result property="contactID" column="contact_id"/>
@@ -72,17 +73,19 @@
         sns_type,
         email,
         ce.sort_no contact_expansion_sort_no,
-        created,
+        ce.created,
         important
     </sql>
 
     <select id="selectAllContacts" resultMap="ContactResultMap">
         SELECT group_id, name, t.*
         FROM (
-            SELECT <include refid="ContactsColumns" />
+            SELECT <include refid="ContactsColumns" />, cr.created recent_date
             FROM contact c
                 INNER JOIN contact_expansion ce
                     ON c.id = ce.contact_id
+                LEFT JOIN contact_recent cr
+                    ON c.id = cr.contact_id
             where c.user_id = #{userID}
             ORDER BY c.sort_no
         ) t
