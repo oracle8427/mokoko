@@ -11,13 +11,18 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 contact.trashCollection = new contact.ContactCollection();
                 contact.contactCollection.fetch({
                     silent: true,
-                    async: false
+                    async: false,
+                    success: function () {
+                        contact.contactCollection.sort('fullName');
+                    }
                 });
                 this.showSidebarView();
                 this.showContentLayout();
                 app.vent.trigger('hide:overlay-loading');
 
                 this.listenTo(app.vent, 'sync:contact-groups-information', this.syncContactGroup);
+                this.listenTo(app.vent, 'move:trash', this.moveToTrash);
+                this.listenTo(app.vent, 'add:contact', this.addContact);
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -108,8 +113,19 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                         model.set('groups', groups);
                     }
                 });
-
                 location.hash = location.hash + '?_=' + new Date().getTime();
+            },
+            moveToTrash: function (params) {
+                if (!params || !params.part)
+                    return;
+
+                var collection = ('trash' === params.part && contact.trashCollection) ||
+                    contact.contactCollection;
+                collection.remove(params.removedModels);
+                location.hash = location.hash + '?_=' + new Date().getTime();
+            },
+            addContact: function (model) {
+                contact.contactCollection.add(model);
             },
             importContact: function () {
                 this.contentLayout.showImportRegion();

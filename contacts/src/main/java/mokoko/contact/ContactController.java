@@ -137,4 +137,25 @@ public class ContactController {
         }
     }
 
+    @PostMapping(value = "{contactID}", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PUT")
+    public Contact putContact(@PathVariable int contactID, @RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+        Contact contact = JacksonJsonUtil.readValue(model, Contact.class);
+        log.debug("PUT: " + contact);
+        contactService.putContact(contact);
+        return contactService.getContact(contactID);
+    }
+
+    @PostMapping(value = "{contactID}", headers = "Content-Type=application/x-www-form-urlencoded")
+    public Contact createContact(@PathVariable int contactID, @RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+        Contact contact = JacksonJsonUtil.readValue(model, Contact.class);
+        System.out.println("POST: " + contactID);
+        return contact;
+    }
+
 }

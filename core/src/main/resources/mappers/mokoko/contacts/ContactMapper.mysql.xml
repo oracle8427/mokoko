@@ -82,12 +82,12 @@
         FROM (
             SELECT <include refid="ContactsColumns" />, cr.created recent_date
             FROM contact c
-                INNER JOIN contact_expansion ce
+                LEFT JOIN contact_expansion ce
                     ON c.id = ce.contact_id
                 LEFT JOIN contact_recent cr
                     ON c.id = cr.contact_id
             where c.user_id = #{userID}
-            ORDER BY c.sort_no
+            <!-- ORDER BY c.sort_no -->
         ) t
         LEFT JOIN (
             SELECT group_id, ccg.contact_id, name, group_type
@@ -101,6 +101,20 @@
            OR group_type IS NULL
     </select>
 
+    <select id="selectContact" resultMap="ContactResultMap">
+        SELECT <include refid="ContactsColumns" />, cr.created recent_date
+        FROM contact c
+            LEFT JOIN contact_expansion ce
+                ON c.id = ce.contact_id
+            LEFT JOIN contact_recent cr
+                ON c.id = cr.contact_id
+            LEFT JOIN contact_contact_group ccg
+                ON c.id = ccg.contact_id
+            LEFT JOIN contact_group cg
+                ON ccg.group_id = cg.id
+        WHERE c.id = #{id}
+    </select>
+
     <select id="selectGroupContacts" resultMap="ContactResultMap">
         SELECT group_id, name, contacts.*
         FROM (
@@ -112,9 +126,9 @@
             ) ccg
                 INNER JOIN contact c
                     ON c.id = ccg.contact_id
-                INNER JOIN contact_expansion ce
+                LEFT JOIN contact_expansion ce
                      ON c.id = ce.contact_id
-           ORDER  BY c.sort_no
+           <!-- ORDER  BY c.sort_no -->
         ) contacts
             LEFT JOIN (
                 SELECT group_id, contact_id, name
@@ -249,4 +263,37 @@
               #{expansion.sns}, #{expansion.snsType}, #{expansion.email}, #{expansion.sortNumber} )
         </foreach>
     </insert>
+
+    <update id="updateContact">
+        UPDATE contact
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="firstname != null">
+                firstname = #{firstname},
+            </if>
+            <if test="lastname != null">
+                lastname = #{lastname},
+            </if>
+            <if test="fullName != null">
+                fullname = #{fullName},
+            </if>
+            <if test="nickname != null">
+                nickname = #{nickname},
+            </if>
+            <if test="birth != null">
+                birth = #{birth},
+            </if>
+            <if test="organization != null">
+                organization = #{organization},
+            </if>
+            <if test="position != null">
+                position = #{position},
+            </if>
+            <if test="notes != null">
+                notes = #{notes},
+            </if>
+            important = #{important},
+        </trim>
+        WHERE id = #{id}
+    </update>
+
 </mapper>

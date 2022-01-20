@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -27,6 +28,10 @@ public class ContactService {
 
     public List<Contact> getAllContacts(String userID) {
         return contactMapper.selectAllContacts(userID);
+    }
+
+    public Contact getContact(int id) {
+        return contactMapper.selectContact(id);
     }
 
     public List<Contact> getGroupContacts(Map<String, Object> params) {
@@ -246,6 +251,29 @@ public class ContactService {
             for (ContactExpansion expansion : contact.getContactExpansions()) {
                 expansion.setContactID(contact.getId());
                 expansion.validateFields();
+            }
+            contactMapper.insertContactExpansions(contact.getContactExpansions());
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void putContact(Contact contact) {
+        if (contact == null || contact.getId() == 0 ||
+                contact.getFirstname() == null || contact.getFirstname().trim().length() == 0)
+            throw new BadRequestException("firstname is null");
+
+        moveToGroup(Collections.singletonList(contact.getId()),
+                contact.getGroups() == null ? Collections.emptyList() :
+                        contact.getGroups()
+                                .stream()
+                                .map(Group::getId)
+                                .collect(Collectors.toList()));
+
+        int affectedRows = contactMapper.updateContact(contact);
+        contactMapper.deleteContactExpansion(contact.getId());
+        if (affectedRows > 0 && contact.getContactExpansions() != null) {
+            for (ContactExpansion expansion : contact.getContactExpansions()) {
+                expansion.setContactID(contact.getId());
             }
             contactMapper.insertContactExpansions(contact.getContactExpansions());
         }

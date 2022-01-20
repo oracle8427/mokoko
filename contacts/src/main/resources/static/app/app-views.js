@@ -68,7 +68,7 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
         },
         showCompositeDimmed: function (el, zIndex) {
             if (_.has(this.childLayer, zIndex))
-                throw new Error('Layer already exists. z-index: ' + zIndex);
+                app.debug('Layer already exists. z-index: ' + zIndex);
             this.childLayer[zIndex] = new app.DimmedLayer();
             this.childLayer[zIndex].render().$el.appendTo(el);
             if (zIndex)

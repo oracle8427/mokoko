@@ -10,6 +10,8 @@ public interface ContactMapper {
 
     List<Contact> selectAllContacts(String userID);
 
+    Contact selectContact(int id);
+
     List<Contact> selectGroupContacts(Map<String, Object> params);
 
     List<Integer> selectIDListAtGroup(int groupID);
@@ -37,5 +39,7 @@ public interface ContactMapper {
     int insertContactExpansion(ContactExpansionEntity contactExpansion);
 
     int insertContactExpansions(List<? extends ContactExpansionEntity> contactExpansions);
+
+    int updateContact(Contact contact);
 
 }

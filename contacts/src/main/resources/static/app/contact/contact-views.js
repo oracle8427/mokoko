@@ -279,6 +279,9 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     var options = {
                         success: function (model, response, xhr) {
                             $closeButton.click();
+                            app.vent.trigger('show:toast-layer', {
+                                message: self.model.isNew() ? '그룹이 생성되었습니다.' : '그룹명이 수정되었습니다.'
+                            });
                         }
                     }
                     var attributes = {
@@ -510,9 +513,6 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
                 this.$el.find('button.save').click(function (event) {
                     event.preventDefault && event.stopPropagation();
-                    if (!self.changed)
-                        return;
-
                     var groupIDList = _.map($items.filter(':checked'), function (box) {
                         return parseInt(box.value)
                     });
@@ -525,7 +525,9 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         url: 'contacts/move',
                         success: function () {
                             app.vent.trigger('show:toast-layer', {
-                                message: '그룹 설정이 완료되었습니다.'
+                                message: self.model.get('part') === 'trash' ?
+                                    '연락처가 복원되었습니다.' :
+                                    '그룹 설정이 완료되었습니다.'
                             });
                             app.vent.trigger('fetch:group-collection');
 
@@ -543,15 +545,15 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             },
             onShow: function () {
                 var self = this;
-                $(app.rootElement).one('click', function (event) {
+                $(app.rootElement).on('click', function (event) {
                     event.stopPropagation()
                     if ($(event.target).closest('#group_settings').length > 0)
                         return;
                     if ($(event.target).closest('.layer_alert').length > 0)
                         return;
+                    $(app.rootElement).off('click');
                     self.close();
                 })
-
             }
         });
 
@@ -796,7 +798,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                                     return _.contains(contactIDList, model.id)
                                 })
                                 if (_.size(models) > 0)
-                                    app.vent.trigger('show:contact-list', new contact.ContactCollection(models), part);
+                                    app.vent.trigger('move:trash', {
+                                        part: part,
+                                        removedModels: models
+                                    });
                             }
                         });
                     }
@@ -838,7 +843,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 });
                 return html;
             },
-            initialize: function (options) {
+            initialize: function () {
                 this.contactModel = this.model.get('contactModel');
                 this.isNew = this.model.get('isNew');
                 this.contactExpansions = this.contactModel.get('contactExpansions');
@@ -912,12 +917,12 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
                     var $radioBox = $this.find('.inp_chk');
                     $radioBox.prop('checked', true);
-                    var phoneType = $radioBox.val();
+                    var optionType = $radioBox.val();
                     var displayText = $radioBox.next('label:first').text();
 
-                    var $selectedType = $this.closest('div.opt_comm').find('span.selected_type');
-                    $selectedType.text(displayText);
-                    $selectedType.data('type', phoneType)
+                    var $box = $this.closest('div.box_info');
+                    $box.find('span.selected_type').text(displayText);
+                    $box.find('div.box_tf input').data('type', optionType)
                     $(app.rootElement).click();
                     return false;
                 });
@@ -1017,8 +1022,6 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 var $saveButton = this.$el.find('button.btn_type2');
                 $saveButton.click(function (event) {
                     event.preventDefault() && event.stopPropagation();
-                    var fields = {};
-
                     var firstname = self.$el.find('#tfWriteFirstName').val().trim();
                     if (!firstname) {
                         app.dimmedLayer.showCompositeDimmed(this, 1001)
@@ -1029,21 +1032,81 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                             }
                         });
                     }
-                    if (firstname !== self.contactModel.get('firstname'))
-                        fields['firstname'] = firstname;
-
                     var lastname = self.$el.find('#tfWriteLastName').val().trim();
-                    if (lastname && lastname !== self.contactModel.get('lastname'))
-                        fields['lastname'] = lastname;
+                    var contactFields = {
+                        firstname: firstname,
+                        lastname: lastname,
+                        fullName: lastname ? (lastname + firstname) : firstname,
+                        important: self.$el.find('#inpWriteFav').is(':checked') ? 1 : 0,
+                        nickname: self.$el.find('#tfWriteNick').val().trim(),
+                        organization: self.$el.find('#tfWriteOffice').val().trim(),
+                        position: self.$el.find('#tfWriteClass').val().trim(),
+                        notes: self.$el.find('#tfWritMemo').val().trim(),
+                        contactExpansions: []
+                    };
+                    app.debug('contactFields: ', contactFields);
 
-                    var isImportant = self.$el.find('#inpWriteFav').is(':checked') ? 1 : 0;
-                    if (isImportant !== self.contactModel.get('important'))
-                        fields['important'] = isImportant;
+                    var reject = function ($el) {
+                        return _.reject($el, function (el) {
+                            return !el.value.trim()
+                        })
+                    }
+                    var $emailList = reject(self.$el.find('input[name=tfWriteMail2]')); // email
+                    var $messengerList = reject(self.$el.find('input[name=tfWriteMsn]')); // messenger
+                    var $phoneList = reject(self.$el.find('input[name=tfWritePhone]')); // phone
+                    var $specialDayList = reject(self.$el.find('input[name=tfWriteDay]')); // specialDay
+                    var $snsList = reject(self.$el.find('input[name=tfWriteLink]')); // sns
+                    var $addressList = reject(self.$el.find('input[name=tfWriteLocation]')); // address
+                    var expansions = [$emailList, $messengerList, $phoneList, $specialDayList, $snsList, $addressList];
+                    var maxLength = _.max(expansions, 'length').length || 0;
+                    for (var i = 0; i < maxLength; i++) {
+                        var expansion = {}
+                        if (!self.contactModel.isNew())
+                            expansion['contactID'] = self.contactModel.id;
 
-                    // ▼ more
-                    var nickname = self.$el.find('#tfWriteNick').val().trim();
-                    if (nickname && nickname !== self.contactModel.get('nickname'))
-                        fields['nickname'] = nickname;
+                        $emailList[i] && (expansion['email'] = $emailList[i].value.trim());
+                        $messengerList[i] && (expansion['messenger'] = $messengerList[i].value.trim());
+                        if ($phoneList[i]) {
+                            var phone = $phoneList[i];
+                            expansion['phone'] = phone.value.trim();
+                            expansion['phoneType'] = expansion['phone'] ? $(phone).data('type') : '';
+                        }
+                        if ($specialDayList[i]) {
+                            var specialDay = $specialDayList[i];
+                            expansion['specialDay'] = specialDay.value.trim();
+                            expansion['specialDayType'] = expansion['specialDay'] ? $(specialDay).data('type') : '';
+                        }
+                        if ($snsList[i]) {
+                            var sns = $snsList[i];
+                            expansion['sns'] = sns.value.trim();
+                            expansion['snsType'] = expansion['sns'] ? $(sns).data('type') : '';
+                        }
+                        if ($addressList[i]) {
+                            var address = $addressList[i];
+                            expansion['address'] = address.value.trim();
+                            expansion['addressType'] = expansion['address'] ? $(address).data('type') : '';
+                        }
+                        contactFields.contactExpansions.push(expansion);
+                    }
+                    contactFields['groups'] = _.compact(
+                        _.map(self.$el.find('input[name=inpWriteGroup]').filter(':checked'), function (group) {
+                            return {id: parseInt(group.value)};
+                        })
+                    );
+                    app.debug('contactFields.contactExpansions', contactFields.contactExpansions);
+                    app.debug('this.model', self.contactModel);
+
+                    // POST or PUT
+                    self.contactModel.save(contactFields, {
+                        success: function (model, response, xhr) {
+                            app.debug(model);
+                            app.debug(response);
+                            app.debug(xhr);
+                            // if (self.contactModel.isNew())
+                            // TODO: 화면 갱신
+                        }
+                    });
+
                 });
 
                 // 닫기, 취소

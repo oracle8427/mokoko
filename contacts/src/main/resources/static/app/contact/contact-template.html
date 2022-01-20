@@ -260,8 +260,6 @@
     </div>
 </script>
 
-
-
 <script type="text/template" id="contact-list-search-template">
     <div class="wrap_tool" style="user-select: none;">
         <div class="tool_head">
@@ -281,13 +279,13 @@
             <div class="box_layer box_group box_open">
                 <button type="button" id="move_group" class="btn_tool btn_layer">
                     <span class="ico_addressbook ico_group">그룹</span>
-                    <span class="txt_btn">이동</span>
+                    <span class="txt_btn"><%- part === 'trash' ? '복원하기' : '이동'%></span>
                 </button>
                 <div id="groupSettingsLayerRegion"></div>
             </div>
             <button type="submit" class="btn_tool btn_del">
                 <span class="ico_addressbook ico_del"></span>
-                <span class="txt_btn">삭제</span>
+                <span class="txt_btn"><%- part === 'trash' ? '완전삭제' : '삭제'%></span>
             </button>
         </div>
         <div class="util_tool">
@@ -346,7 +344,14 @@
 </script>
 
 <script type="text/template" id="contact-list-template">
-    <p class="txt_notice"><span class="ico_addressbook ico_notice">안내</span>연락처는 최대 2만개까지 저장할 수 있습니다.</p>
+    <p class="txt_notice">
+        <%
+            var notice = {
+                recently : '최근 이용한 연락처는 최대 100일간 보관됩니다.',
+                trash : '휴지통은 최대 1년간 보관됩니다. (이후 자동삭제)'
+            }
+        %>
+        <span class="ico_addressbook ico_notice">안내</span><%- notice[part] || '연락처는 최대 2만개까지 저장할 수 있습니다.' %></p>
     <ul class="list_address list_type1"
         style="position: relative; height: 162px; will-change: transform; min-width: initial;">
 
@@ -380,11 +385,13 @@
                         <div class="info_address info_email" role="text">
                         <% var expansions =  contactModel.get('contactExpansions'); %>
                             <strong class="screen_out">이메일</strong>
-                            <span class="txt_info"><%- expansions[0].email || '' %></span></div>
+                            <span class="txt_info"><%- (expansions[0] && expansions[0].email) || '' %></span></div>
                         <div class="info_address info_phone" role="text">
                             <strong class="screen_out">전화번호</strong>
-                            <span class="txt_info"><%- expansions[0].phone || '' %></span></div>
-                        <% if ('trash' !== part ) { %>
+                            <span class="txt_info"><%- (expansions[0] && expansions[0].phone) || '' %></span></div>
+
+                    <!-- 휴지통은 그룹을 표시하지 않음 -->
+                    <% if ('trash' !== part ) { %>
                         <div class="info_group" role="text"><strong class="screen_out">그룹</strong>
                             <div class="wrap_bubble" id="groupsContainer-<%-contactModel.id%>">
                                 <%  if (createGroupsDisplay && _.isFunction(createGroupsDisplay)) {
@@ -394,18 +401,23 @@
                                     } %>
                             </div>
                         </div>
-                        <% } %>
+                    <% } %>
                     </div>
                 </div>
             </div>
+
+            <!-- 휴지통은 중요 연락처 설정을 표시하지 않음 -->
+            <% if (part !== 'trash') { %>
             <div class="wrap_fav">
                 <div class="item_chk item_fav">
-                    <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk">
+                    <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk"
+                           <%- contactModel.get('important') == 1 ? 'checked=checked' : '' %>>
                     <label class="lab_chk lab_fav" for="inpFav<%- contactModel.id %>">
                         <span class="ico_addressbook ico_fav">즐겨찾기 - <%- contactModel.get('fullName') %></span>
                     </label>
                 </div>
             </div>
+            <% } %>
         </li>
 <%  }); // _.each(contactCollection.models, function(contactModel)%>
 
@@ -425,7 +437,7 @@
 
 <script type="text/template" id="group-settings-template">
 
-        <strong class="tit_layer ">그룹설정</strong>
+        <strong class="tit_layer "><%- part === 'trash' ?  '복원하기' : '그룹설정'%></strong>
         <div class="inner_layer">
             <ul class="list_chk list_chk3">
             <%
@@ -436,8 +448,7 @@
                         intersection = _.intersection(intersection ? intersection : groups, contactModels[i].get('groups'));
                     }
                 }
-
-                _.each(groupCollection.models, function(groupModel) { console.log(_.contains(groups, groupModel.id));%>
+                _.each(groupCollection.models, function(groupModel) { %>
                 <li>
                     <div class="item_chk">
                         <input type="checkbox" name="inpToolGroup" class="inp_chk"
@@ -492,28 +503,27 @@
         </strong>
         <div class="box_info">
             <div class="box_tf">
+                <%
+                    var phoneType = contactExpansion.phoneType;
+                    var dict = {
+                        'home' : '집',
+                        'company' : '직장',
+                        'mobile' : '휴대폰',
+                        'fax' : '팩스',
+                        'etc' : '기타'
+                    }
+                %>
                 <input autocomplete="off" type="text" id="tfWritePhone<%- index %>" name="tfWritePhone"
                        title="전화번호" class="tf_g" placeholder="전화번호"
-                       value="<%- contactExpansion.phone %>">
+                       value="<%- contactExpansion.phone %>" data-type="<%- phoneType || 'home' %>">
                 <button type="button" class="btn_del">
                     <span class="ico_addressbook ico_del">삭제</span>
                 </button>
             </div>
             <div class="opt_comm">
                 <button type="button" class="btn_opt">
-                    <%
-                        var phoneType = contactExpansion.phoneType;
-                        var dict = {
-                            'home' : '집',
-                            'company' : '직장',
-                            'mobile' : '휴대폰',
-                            'fax' : '팩스',
-                            'etc' : '기타'
-                        }
-                    %>
                     <span class="screen_out">선택됨</span>
-                    <span class="selected_type"
-                          data-type="<%- phoneType || 'home' %>"><%- dict[phoneType] || dict['home'] %></span>
+                    <span class="selected_type"><%- dict[phoneType] || dict['home'] %></span>
                     <span class="ico_addressbook ico_arr"></span>
                 </button>
                 <div class="dimm_layer"></div>
@@ -592,26 +602,26 @@
             <% } %>
             </label>
         </strong>
+        <%
+            var specialDayType = contactExpansion.specialDayType;
+            var dict = {
+                'anniversary' : '기념일',
+                'etc' : '기타'
+            }
+        %>
         <div class="box_info">
             <div class="box_tf">
                 <input autocomplete="off" type="text" id="tfWriteDay<%- index %>" class="tf_g" name="tfWriteDay"
-                       title="날짜" placeholder="날짜" value="<%- contactExpansion.specialDay %>">
+                       title="날짜" placeholder="날짜" value="<%- contactExpansion.specialDay %>"
+                       data-type="<%- specialDayType || 'anniversary' %>">
                 <button type="button" class="btn_del">
                     <span class="ico_addressbook ico_del">삭제</span>
                 </button>
             </div>
             <div class="opt_comm">
-                <%
-                    var specialDayType = contactExpansion.specialDayType;
-                    var dict = {
-                        'anniversary' : '기념일',
-                        'etc' : '기타'
-                    }
-                %>
                 <button type="button" class="btn_opt">
                     <span class="screen_out">선택됨</span>
-                    <span class="selected_type"
-                          data-type="<%- specialDayType || 'anniversary' %>"><%- dict[specialDayType] || dict['anniversary'] %></span>
+                    <span class="selected_type"><%- dict[specialDayType] || dict['anniversary'] %></span>
                     <span class="ico_addressbook ico_arr"></span>
                 </button>
                 <div class="layer_g layer_opt">
@@ -674,7 +684,7 @@
             <div class="box_tf">
                 <input autocomplete="off" type="text" id="tfWriteLink<%- index %>" name="tfWriteLink"
                        class="tf_g" placeholder="http://" title="SNS"
-                       value="<%- contactExpansion.sns %>">
+                       value="<%- contactExpansion.sns %>" data-type="<%- snsType || 'blog' %>">
                 <button type="button" class="btn_del">
                     <span class="ico_addressbook ico_del">삭제</span>
                 </button>
@@ -682,8 +692,7 @@
             <div class="opt_comm">
                 <button type="button" class="btn_opt">
                     <span class="screen_out">선택됨</span>
-                    <span class="selected_type"
-                          data-type="<%- snsType || 'blog' %>"><%- dict[snsType] || dict['blog'] %></span>
+                    <span class="selected_type"><%- dict[snsType] || dict['blog'] %></span>
                     <span class="ico_addressbook ico_arr"></span>
                 </button>
 
@@ -792,7 +801,7 @@
             <div class="box_tf">
                 <input autocomplete="off" type="text" id="tfWriteLocation<%- index %>"
                        name="tfWriteLocation" title="주소" class="tf_g" placeholder="주소"
-                       value="<%- contactExpansion.address %>">
+                       value="<%- contactExpansion.address %>" data-type="<%- addressType || 'home' %>">
                 <button type="button" class="btn_del">
                     <span class="ico_addressbook ico_del">삭제</span>
                 </button>
@@ -800,40 +809,39 @@
             <div class="opt_comm">
                 <button type="button" class="btn_opt">
                     <span class="screen_out">선택됨</span>
-                    <span class="selected_type"
-                          data-type="<%- addressType || 'blog' %>"><%- dict[addressType] || dict['home'] %></span>
+                    <span class="selected_type"><%- dict[addressType] || dict['home'] %></span>
                     <span class="ico_addressbook ico_arr"></span>
                 </button>
                 <div class="layer_g layer_opt">
                     <div class="inner_layer"><strong class="screen_out">선택옵션</strong>
                         <ul class="list_chk">
-                            <li>
+                            <li class="option">
                                 <div class="item_chk">
-                                    <input type="radio" id="inpOptLocation100<%- index %>" class="inp_chk"
-                                           name="inpOptLocation<%- index %>"
-                                           value="home" <%- (!addressType || addressType === 'home') ? 'checked=checked' : '' %>>
+                                    <input type="radio" id="inpOptLocation100<%- index %>" name="inpOptLocation<%- index %>"
+                                           class="inp_chk" value="home"
+                                           <%- (!addressType || addressType === 'home') ? 'checked=checked' : '' %>>
                                     <label class="lab_chk" for="inpOptLocation100<%- index %>">
                                         <span><%- dict['home'] %></span>
                                         <span class="ico_addressbook ico_chk"></span>
                                     </label>
                                 </div>
                             </li>
-                            <li>
+                            <li class="option">
                                 <div class="item_chk">
-                                    <input type="radio" id="inpOptLocation101<%- index %>" class="inp_chk"
-                                           name="inpOptLocation<%- index %>"
-                                           value="home" <%- addressType === 'home' ? 'checked=checked' : '' %>>
+                                    <input type="radio" id="inpOptLocation101<%- index %>" name="inpOptLocation<%- index %>"
+                                           class="inp_chk" value="company"
+                                           <%- addressType === 'company' ? 'checked=checked' : '' %>>
                                     <label class="lab_chk" for="inpOptLocation101<%- index %>">
                                         <span><%- dict['company'] %></span>
                                         <span class="ico_addressbook ico_chk"></span>
                                     </label>
                                 </div>
                             </li>
-                            <li>
+                            <li class="option">
                                 <div class="item_chk">
-                                    <input type="radio" id="inpOptLocation102<%- index %>" class="inp_chk"
-                                           name="inpOptLocation<%- index %>"
-                                           value="etc" <%- addressType === 'etc' ? 'checked=checked' : '' %>>
+                                    <input type="radio" id="inpOptLocation102<%- index %>" name="inpOptLocation<%- index %>"
+                                           class="inp_chk" value="etc"
+                                           <%- addressType === 'etc' ? 'checked=checked' : '' %>>
                                     <label class="lab_chk" for="inpOptLocation102<%- index %>">
                                         <span><%- dict['etc'] %></span>
                                         <span class="ico_addressbook ico_chk"></span>
@@ -886,7 +894,8 @@
                                     </button>
                                 </div>
                                 <div class="item_chk item_fav">
-                                    <input type="checkbox" id="inpWriteFav" name="inpWriteFav" class="inp_chk">
+                                    <input type="checkbox" id="inpWriteFav" name="inpWriteFav" class="inp_chk"
+                                           <%- contact.important == 1 ? 'checked=checked' : '' %>>
                                     <label class="lab_chk lab_fav" for="inpWriteFav">
                                         <span class="ico_addressbook ico_fav">즐겨찾기 선택하기</span>
                                     </label>
