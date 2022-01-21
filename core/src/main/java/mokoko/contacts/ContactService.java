@@ -87,6 +87,7 @@ public class ContactService {
             params.put("id", contactID);
             params.put("important", 0);
             contactMapper.updateContact(params);
+            contactMapper.deleteContactRecent((int) contactID);
         }
     }
 

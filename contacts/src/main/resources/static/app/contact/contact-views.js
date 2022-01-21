@@ -535,14 +535,14 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     new Backbone.Model({id: 0}).save(params, {
                         url: 'contacts/move',
                         success: function () {
+                            var part = self.model.get('part');
                             app.vent.trigger('show:toast-layer', {
-                                message: self.model.get('part') === 'trash' ?
+                                message: part === 'trash' ?
                                     '연락처가 복원되었습니다.' :
                                     '그룹 설정이 완료되었습니다.'
                             });
                             app.vent.trigger('fetch:group-collection');
-
-                            params['part'] = self.model.get('part');
+                            params['part'] = part;
                             app.vent.trigger('sync:contact-groups-information', params);
                             self.close();
                         }
@@ -802,7 +802,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         patch: true,
                         success: function () {
                             app.vent.trigger('fetch:contact-count', ['important'], {
-                                important: importantCount
+                                important: importantCount,
                             });
                         }
                     })
@@ -823,15 +823,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         })
                         if (_.size(contactIDList) === 0)
                             return;
-
-                        var models = _.filter(self.contactCollection.models, function (model) {
-                            return _.contains(contactIDList, model.id)
-                        })
-
-                        var importantCount = _.filter(models, function (model) {
-                            return model.get('important') === 1;
-                        }).length;
-
+                        
                         new Backbone.Model({
                             id: 0
                         }).save({
@@ -848,9 +840,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                                         part: part,
                                         removedModels: models
                                     });
-                                    app.vent.trigger('fetch:contact-count', ['important'], {
-                                        important: -importantCount
-                                    });
+                                    app.vent.trigger('fetch:contact-count', ['all', 'recently', 'important']);
                                 }
                             }
                         });
