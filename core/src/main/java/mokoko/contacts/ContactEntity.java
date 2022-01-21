@@ -122,7 +122,8 @@ public class ContactEntity {
 
         public ContactEntity build() {
             if (fullName == null || fullName.trim().length() == 0) {
-                this.fullName = (lastname == null || lastname.trim().length() == 0) ? firstname : lastname + firstname;
+                if (firstname != null && firstname.trim().length() > 0)
+                    this.fullName = (lastname == null || lastname.trim().length() == 0) ? firstname : lastname + firstname;
             }
             return new ContactEntity(
                     id, userID, fullName, firstname, lastname,

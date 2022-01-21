@@ -83,6 +83,11 @@ public class ContactService {
         params.put("groupID", trashID);
         contactMapper.unlinkAllGroup(idList);
         contactMapper.moveToGroup(params);
+        for (Object contactID : idList) {
+            params.put("id", contactID);
+            params.put("important", 0);
+            contactMapper.updateContact(params);
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
@@ -240,7 +245,6 @@ public class ContactService {
             contactMapper.insertContactExpansions(contactExpansions);
     }
 
-
     @Transactional(rollbackFor = Exception.class)
     public void createContact(Contact contact) {
         if (contact.getFirstname() == null || contact.getFirstname().trim().length() == 0)
@@ -277,6 +281,10 @@ public class ContactService {
             }
             contactMapper.insertContactExpansions(contact.getContactExpansions());
         }
+    }
+
+    public void updateContact(Contact contact) {
+        contactMapper.updateContact(contact);
     }
 
 

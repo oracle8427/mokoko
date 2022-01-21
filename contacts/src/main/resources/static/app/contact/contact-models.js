@@ -81,6 +81,11 @@ define(['app'], function (app) {
                             return false;
                         }();
                 });
+            },
+            find: function (prop, value) {
+                return _.find(this.models, function (model) {
+                    return model.get(prop) === value;
+                })
             }
         });
 

@@ -109,11 +109,22 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.toastFooterLayerRegion.show(toastFooterLayerView);
                 toastFooterLayerView.$el.appendTo(app.rootElement);
             },
-            getContactCount: function (condition) {
+            getContactCount: function (condition, params) {
                 if (!condition)
                     return false;
-
                 var self = this;
+
+                if (params && _.size(params) > 0) {
+                    _.each(condition, function (name) {
+                        var value = parseInt(params[name])
+                        if (_.isNaN(value))
+                            return;
+                        var $el = self.$el.find('#' + name + ' span.num_count');
+                        $el.text(parseInt($el.text()) + value);
+                    })
+                    return false;
+                }
+
                 new Backbone.Model().fetch({
                     url: 'groups/count',
                     data: $.param({'condition': condition}),
@@ -758,6 +769,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 return $el;
             },
             onRender: function () {
+                var self = this;
                 this.$checkBoxes = this.$el.find('div.item_profile .inp_chk');
                 this.$checkBoxes.click(function (event) {
                     event.stopPropagation();
@@ -769,6 +781,32 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     else
                         $li.hasClass('item_on') && $li.removeClass('item_on')
                 })
+
+                this.$el.find('input[name=inpFav1]').click(function (event) {
+                    event.stopPropagation();
+                    var contactID = parseInt(this.value);
+                    if (_.isNaN(contactID)) {
+                        event.preventDefault();
+                        return false;
+                    }
+                    var contactModel = self.contactCollection.find('id', contactID);
+                    if (!contactModel) {
+                        event.preventDefault();
+                        return false;
+                    }
+                    var importantCount = this.checked ? 1 : -1;
+                    contactModel.save({
+                        id: contactModel.id,
+                        important: this.checked ? 1 : 0
+                    }, {
+                        patch: true,
+                        success: function () {
+                            app.vent.trigger('fetch:contact-count', ['important'], {
+                                important: importantCount
+                            });
+                        }
+                    })
+                });
             },
             moveToTrash: function (part) {
                 var self = this;
@@ -786,6 +824,14 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         if (_.size(contactIDList) === 0)
                             return;
 
+                        var models = _.filter(self.contactCollection.models, function (model) {
+                            return _.contains(contactIDList, model.id)
+                        })
+
+                        var importantCount = _.filter(models, function (model) {
+                            return model.get('important') === 1;
+                        }).length;
+
                         new Backbone.Model({
                             id: 0
                         }).save({
@@ -797,11 +843,15 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                                 var models = _.filter(self.contactCollection.models, function (model) {
                                     return _.contains(contactIDList, model.id)
                                 })
-                                if (_.size(models) > 0)
+                                if (_.size(models) > 0) {
                                     app.vent.trigger('move:trash', {
                                         part: part,
                                         removedModels: models
                                     });
+                                    app.vent.trigger('fetch:contact-count', ['important'], {
+                                        important: -importantCount
+                                    });
+                                }
                             }
                         });
                     }

@@ -411,6 +411,7 @@
             <div class="wrap_fav">
                 <div class="item_chk item_fav">
                     <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk"
+                           value="<%- contactModel.id %>"
                            <%- contactModel.get('important') == 1 ? 'checked=checked' : '' %>>
                     <label class="lab_chk lab_fav" for="inpFav<%- contactModel.id %>">
                         <span class="ico_addressbook ico_fav">즐겨찾기 - <%- contactModel.get('fullName') %></span>

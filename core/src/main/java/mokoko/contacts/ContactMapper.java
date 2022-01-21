@@ -42,4 +42,6 @@ public interface ContactMapper {
 
     int updateContact(Contact contact);
 
+    int updateContact(Map<String, Object> contact);
+
 }

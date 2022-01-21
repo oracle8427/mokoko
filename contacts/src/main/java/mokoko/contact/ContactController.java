@@ -1,10 +1,7 @@
 package mokoko.contact;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import mokoko.contacts.Contact;
-import mokoko.contacts.ContactService;
-import mokoko.contacts.Group;
-import mokoko.contacts.GroupService;
+import mokoko.contacts.*;
 import mokoko.error.BadRequestException;
 import mokoko.error.NotFoundException;
 import mokoko.user.UserWrapperService;
@@ -22,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +67,9 @@ public class ContactController {
 
     @PostMapping(value = "trash", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
     public ResponseEntity<?> moveToTrash(@RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
         Map<String, Object> params = JacksonJsonUtil.readValueAsMap(model);
         Object value = params.get("idList");
         if (!(value instanceof List))
@@ -146,6 +147,21 @@ public class ContactController {
         log.debug("PUT: " + contact);
         contactService.putContact(contact);
         return contactService.getContact(contactID);
+    }
+
+    @PostMapping(value = "{contactID}", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
+    public ResponseEntity<?> updateContact(@PathVariable int contactID, @RequestParam String model) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+        Contact contact = JacksonJsonUtil.readValue(model, Contact.class);
+        contact.setOwner(username);
+
+        contactService.updateContact(contact);
+        return ResponseEntity.ok(new HashMap<String, Integer>() {{
+            put("id", contactID);
+            put("important", contact.getImportant());
+        }});
     }
 
     @PostMapping(value = "{contactID}", headers = "Content-Type=application/x-www-form-urlencoded")
