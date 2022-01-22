@@ -23,7 +23,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 this.listenTo(app.vent, 'sync:contact-groups-information', this.syncContactGroup);
                 this.listenTo(app.vent, 'move:trash', this.moveToTrash);
                 this.listenTo(app.vent, 'remove:contacts', this.removeContacts);
-                this.listenTo(app.vent, 'add:contact', this.addContact);
+                this.listenTo(app.vent, 'create:contact', this.createContact);
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -153,8 +153,11 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 contact.trashCollection.remove(removedModels);
                 location.hash = location.hash + '?_=' + new Date().getTime();
             },
-            addContact: function (model) {
+            createContact: function (model) {
                 contact.contactCollection.add(model);
+                location.hash = location.hash.indexOf('trash') > -1 ?
+                    '' :
+                    location.hash + '?_=' + new Date().getTime();
             },
             importContact: function () {
                 this.contentLayout.showImportRegion();

@@ -54,7 +54,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
                 this.$el.find('button.btn_add').click(function (event) {
                     event.preventDefault() && event.stopPropagation();
-                    app.vent.trigger('show:contact-layer');
+                    app.vent.trigger('show:contact-edit-layer');
                 });
             },
             showGroups: function () {
@@ -906,22 +906,22 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
             },
         });
 
-        contact.ContactLayerView = Backbone.Marionette.ItemView.extend({
+        contact.ContactEditLayer = Backbone.Marionette.ItemView.extend({
             className: 'layer_comm layer_type2',
             attributes: {
                 style: "user-select: none; z-index:1000"
             },
             template: function (data) {
-                var html, compiledTemplate = contact.ContactLayerView.compiledTemplate;
+                var html, compiledTemplate = contact.ContactEditLayer.compiledTemplate;
                 if (!compiledTemplate) {
-                    html = contact.$template.filter('#contact-layer-template').html();
+                    html = contact.$template.filter('#contact-edit-layer-template').html();
                     compiledTemplate = _.template(html);
-                    contact.ContactLayerView.compiledTemplate = compiledTemplate;
+                    contact.ContactEditLayer.compiledTemplate = compiledTemplate;
                 }
                 html = compiledTemplate({
                     contact: data.contactModel.toJSON(),
                     isNew: data.isNew,
-                    templates: contact.ContactLayerView.templates,
+                    templates: contact.ContactEditLayer.templates,
                     groupCollection: contact.groupCollection
                 });
                 return html;
@@ -930,10 +930,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.contactModel = this.model.get('contactModel');
                 this.isNew = this.model.get('isNew');
                 this.contactExpansions = this.contactModel.get('contactExpansions');
-                if (!contact.ContactLayerView.templates)
-                    contact.ContactLayerView.templates = {}
+                if (!contact.ContactEditLayer.templates)
+                    contact.ContactEditLayer.templates = {}
 
-                var templates = contact.ContactLayerView.templates;
+                var templates = contact.ContactEditLayer.templates;
                 var html;
                 if (!_.has(templates, 'email')) {
                     html = contact.$template.filter('#email-input-template').html();
@@ -1053,7 +1053,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     contact.groupCollection.create(groupModel, {
                         success: function (model, response, xhr) {
                             var $groups = self.$el.find('ul#contactLayerGroups');
-                            var html = contact.ContactLayerView.templates['groupItem']({groupModel: model});
+                            var html = contact.ContactEditLayer.templates['groupItem']({groupModel: model});
                             $groups.append(html);
                             $groups.find('#inpWriteGroup' + model.id).prop('checked', true);
                             app.vent.trigger('show:toast-layer', {
@@ -1114,6 +1114,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                                 app.dimmedLayer.closeCompositeDimmed(1001);
                             }
                         });
+                        return false;
                     }
                     var lastname = self.$el.find('#tfWriteLastName').val().trim();
                     var contactFields = {
@@ -1182,11 +1183,8 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     // POST or PUT
                     self.contactModel.save(contactFields, {
                         success: function (model, response, xhr) {
-                            app.debug(model);
-                            app.debug(response);
-                            app.debug(xhr);
-                            // if (self.contactModel.isNew())
-                            // TODO: 화면 갱신
+                            app.vent.trigger('create:contact', model);
+                            self.close();
                         }
                     });
 
@@ -1206,10 +1204,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     self.$el.find('div.bundle_address').addClass('bundle_open');
                     $(this).hide();
                 })
-                $moreButton.click();
+                //$moreButton.click();
             },
             appendInputRegion: function (epicenter) {
-                var templates = contact.ContactLayerView.templates;
+                var templates = contact.ContactEditLayer.templates;
                 if (_.has(templates, epicenter)) {
                     var $inputs = this.$el.find('.info_address[data-epicenter=' + epicenter + ']');
                     var $html = $(templates[epicenter]({
@@ -1247,7 +1245,9 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 contactListSearchRegion: 'div#contactListSearchRegion',
                 contactListRegion: 'div#contactListRegion',
                 trashRegion: 'div#trashRegion',
+                contactSimpleLayerRegion: 'div#contactLayerRegion',
                 contactLayerRegion: 'div#contactLayerRegion',
+                contactEditLayerRegion: 'div#contactEditLayerRegion',
                 importHeaderRegion: 'div#importHeaderRegion',
                 importContentRegion: 'div#importContentRegion',
                 importLoadingRegion: 'div#importLoadingRegion',
@@ -1260,6 +1260,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.listenTo(app.vent, 'show:contact-search', this.showContactSearchRegion);
                 this.listenTo(app.vent, 'show:no-search-result', this.showNoSearchResult);
                 this.listenTo(app.vent, 'show:contact-layer', this.showContactLayer);
+                this.listenTo(app.vent, 'show:contact-edit-layer', this.showContactEditLayer);
                 this.listenTo(app.vent, 'show:import-loading', this.showImportLoading);
             },
             onRender: function () {
@@ -1293,16 +1294,17 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     })
                 }));
             },
-            showContactLayer: function (contactModel) {
-                var model = contact.contactCollection.models[0];
-                var contactLayerView = new contact.ContactLayerView({
+            showContactEditLayer: function (contactModel) {
+                if (!contactModel)
+                    contactModel = new contact.ContactModel();
+                var contactEditLayer = new contact.ContactEditLayer({
                     model: new Backbone.Model({
-                        contactModel: model,
-                        isNew: model.isNew()
+                        contactModel: contactModel,
+                        isNew: contactModel.isNew()
                     })
                 });
-                this.contactLayerRegion.show(contactLayerView);
-                contactLayerView.$el.appendTo(app.rootElement);
+                this.contactEditLayerRegion.show(contactEditLayer);
+                contactEditLayer.$el.appendTo(app.rootElement);
             },
             showNoSearchResult: function () {
                 var noSearchResultView = new contact.NoSearchResultView();

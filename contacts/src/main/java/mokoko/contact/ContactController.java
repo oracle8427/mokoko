@@ -162,13 +162,15 @@ public class ContactController {
         }});
     }
 
-    @PostMapping(value = "{contactID}", headers = "Content-Type=application/x-www-form-urlencoded")
-    public Contact createContact(@PathVariable int contactID, @RequestParam String model) {
+    @PostMapping(headers = "Content-Type=application/x-www-form-urlencoded")
+    public Contact createContact(@RequestParam String model) {
         String username = userWrapperService.getUsername();
         if (username == null || username.length() == 0)
             throw new NotFoundException("Not Found User");
         Contact contact = JacksonJsonUtil.readValue(model, Contact.class);
-        return contact;
+        contact.setOwner(username);
+        contactService.createContact(contact);
+        return contactService.getContact(contact.getId());
     }
 
     @PostMapping(value = "remove", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=DELETE")
