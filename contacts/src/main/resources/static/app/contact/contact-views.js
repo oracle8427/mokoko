@@ -809,6 +809,44 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         }
                     })
                 });
+
+                this.$el.find('li').mouseleave(function () {
+                    if (self.groupSettingsLayer && !self.groupSettingsLayer.isClosed)
+                        self.groupSettingsLayer.close();
+                })
+
+                this.$el.find('div.wrap_edit button').click(function (event) {
+                    event.preventDefault() && event.stopPropagation();
+                    var $this = $(this)
+                    var contactID = parseInt($this.val());
+                    if (_.isNaN(contactID))
+                        return false;
+                    var model = self.contactCollection.find('id', contactID);
+                    if (!model)
+                        return false;
+
+                    if ($this.hasClass('btn_modify')) {
+                        app.vent.trigger('show:contact-edit-layer', model);
+                    } else if ($this.hasClass('btn_layer')) {
+                        var $el = $this.closest('div.wrap_edit');//
+                        self.groupSettingsLayer = new contact.GroupSettingsLayer({
+                            model: new Backbone.Model({
+                                groupCollection: contact.groupCollection,
+                                contactModels: [model],
+                                part: self.model.get('part')
+                            })
+                        });
+                        self.groupSettingsLayer.render();
+                        self.groupSettingsLayer.$el.css({
+                            'margin-top': '30px',
+                            'margin-left': '-80px'
+                        });
+                        $el.prepend(self.groupSettingsLayer.$el);
+                    } else if ($this.hasClass('btn_del')) {
+                        app.dimmedLayer.showDimmed();
+                        self.trash([contactID]);
+                    }
+                });
             },
             moveToTrash: function () {
                 var $checkedBoxes = this.$checkBoxes.filter(':checked');
@@ -889,6 +927,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         app.dimmedLayer.hideDimmed();
                     }
                 });
+            },
+            onClose: function () {
+                if (this.groupSettingsLayer && !this.groupSettingsLayer.isClosed)
+                    this.groupSettingsLayer.close();
             }
         });
 

@@ -419,6 +419,20 @@
                 </div>
             </div>
             <% } %>
+
+            <div class="wrap_edit" aria-hidden="true">
+                <button type="button" class="btn_edit btn_modify" value="<%- contactModel.id %>">
+                    <span class="ico_addressbook ico_modify">수정</span>
+                </button>
+                <div class="box_layer">
+                    <button type="button" class="btn_edit btn_layer" value="<%- contactModel.id %>">
+                        <span class="ico_addressbook ico_group">그룹</span>
+                    </button>
+                </div>
+                <button type="button" class="btn_edit btn_del" value="<%- contactModel.id %>">
+                    <span class="ico_addressbook ico_del">삭제</span>
+                </button>
+            </div>
         </li>
 <%  }); // _.each(contactCollection.models, function(contactModel)%>
 
@@ -1229,4 +1243,3 @@
         </div>
     </div>
 </script>
-
