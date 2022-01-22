@@ -16,11 +16,13 @@ public interface ContactMapper {
 
     List<Integer> selectIDListAtGroup(int groupID);
 
+    int selectRecentCount(Map<String, Object> params);
+
     int selectAllCount(Map<String, Object> params);
 
     int selectImportantCount(Map<String, Object> params);
 
-    int selectRecentCount(Map<String, Object> params);
+    List<Integer> selectIDList(Map<String, Object> params);
 
     int deleteContact(int id);
 

@@ -19,9 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("contacts")
@@ -170,8 +168,27 @@ public class ContactController {
         if (username == null || username.length() == 0)
             throw new NotFoundException("Not Found User");
         Contact contact = JacksonJsonUtil.readValue(model, Contact.class);
-        System.out.println("POST: " + contactID);
         return contact;
+    }
+
+    @PostMapping(value = "remove", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=DELETE")
+    public ResponseEntity<?> removeContacts(@RequestParam int[] idList) {
+        if (idList.length == 0)
+            throw new BadRequestException("Bad Parameter. Size is zero");
+
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("userID", username);
+        params.put("idList", idList);
+        List<Integer> contactIDList = contactService.getIDList(params);
+        if (contactIDList.size() != idList.length)
+            throw new BadRequestException("Invalid Contact IDList");
+
+        contactService.removeContactByUser(contactIDList);
+        return ResponseEntity.ok(params);
     }
 
 }

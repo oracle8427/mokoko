@@ -28,10 +28,10 @@ define(['app'], function (app) {
             initialize: function (models, options) {
                 Backbone.Collection.prototype.initialize.apply(this, arguments);
             },
-            sort: function (sortField, sortOrder, options) {
+            sort: function (options, sortField, sortOrder) {
                 app.debug('contact.ContactCollection.sort(' + sortField + ', ', sortOrder + ')', options);
                 if (!sortField)
-                    return;
+                    sortField = 'fullName';
                 if (!sortOrder)
                     sortOrder = 'ASC'
 

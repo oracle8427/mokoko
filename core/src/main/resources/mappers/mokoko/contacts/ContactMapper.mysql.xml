@@ -148,20 +148,29 @@
         WHERE group_id = #{groupID}
     </select>
 
+    <select id="selectIDList" resultType="int">
+        SELECT id
+        FROM contact
+        WHERE user_id = #{userID}
+        AND id in
+        <foreach collection="idList" item="id" index="index" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
     <select id="selectAllCount" resultType="int">
-        SELECT count(*)
-        FROM (
-            SELECT c.id, group_type
-            FROM contact c
-                LEFT JOIN (
-                        SELECT contact_id, group_type
-                        FROM contact_group cg
-                            INNER JOIN contact_contact_group ccg
-                                ON cg.id = ccg.group_id
-                        WHERE  user_id = #{userID}
-                ) cg
-                    ON id = cg.contact_id) g
-        WHERE  group_type <![CDATA[ < ]]> 2 OR group_type IS NULL
+        SELECT (
+           SELECT count(*)
+           FROM contact
+           WHERE user_id = 'mailmaster@mokoko.shop'
+        ) - (
+           SELECT count(*)
+           FROM contact_group cg
+                    INNER JOIN contact_contact_group ccg
+                               ON cg.id = ccg.group_id
+           WHERE user_id  = 'mailmaster@mokoko.shop'
+             AND group_type = 2
+        ) all_count
     </select>
 
     <select id="selectImportantCount" resultType="int">

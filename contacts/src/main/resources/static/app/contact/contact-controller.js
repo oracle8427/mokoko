@@ -13,7 +13,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                     silent: true,
                     async: false,
                     success: function () {
-                        contact.contactCollection.sort('fullName');
+                        contact.contactCollection.sort({silent: true});
                     }
                 });
                 this.showSidebarView();
@@ -22,6 +22,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
 
                 this.listenTo(app.vent, 'sync:contact-groups-information', this.syncContactGroup);
                 this.listenTo(app.vent, 'move:trash', this.moveToTrash);
+                this.listenTo(app.vent, 'remove:contacts', this.removeContacts);
                 this.listenTo(app.vent, 'add:contact', this.addContact);
             },
             onClose: function () {
@@ -90,6 +91,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 contact.trashCollection.fetch({
                     url: contact.trashCollection.url + '?' + $.param({'trash': 2}),
                     success: function () {
+                        contact.trashCollection.sort({silent: true});
                         app.vent.trigger('show:contact-search', contact.trashCollection, part);
                         app.vent.trigger('show:contact-list', contact.trashCollection, part);
                     }
@@ -108,20 +110,47 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                     if (_.contains(groupIDList, model.id))
                         groups.push(model.toJSON());
                 });
-                _.each(collection.models, function (model) {
-                    if (_.contains(params.contactIDList, model.id)) {
-                        model.set('groups', groups);
-                    }
+
+                var models = _.filter(collection.models, function (model) {
+                    return _.contains(params.contactIDList, model.id);
                 });
+                _.each(models, function (model) {
+                    model.set('groups', groups);
+                });
+
+                if (part === 'trash') {
+                    contact.contactCollection.add(models);
+                    app.vent.trigger('fetch:contact-count', ['all']);
+                    app.vent.trigger('fetch:group-collection');
+                }
+
                 location.hash = location.hash + '?_=' + new Date().getTime();
             },
             moveToTrash: function (params) {
-                if (!params || !params.part)
+                if (!params || !params.part || !params.contactIDList)
                     return;
 
                 var collection = ('trash' === params.part && contact.trashCollection) ||
                     contact.contactCollection;
-                collection.remove(params.removedModels);
+                var removedModels = _.filter(collection.models, function (model) {
+                    return _.contains(params.contactIDList, model.id)
+                });
+                if (removedModels.length === 0)
+                    return;
+
+                collection.remove(removedModels);
+                app.vent.trigger('fetch:contact-count', ['all', 'recently', 'important']);
+                app.vent.trigger('fetch:group-collection');
+                location.hash = location.hash + '?_=' + new Date().getTime();
+            },
+            removeContacts: function (contactIDList) {
+                if (!contactIDList || contactIDList.length === 0)
+                    return;
+
+                var removedModels = _.filter(contact.trashCollection.models, function (model) {
+                    return _.contains(contactIDList, model.id)
+                });
+                contact.trashCollection.remove(removedModels);
                 location.hash = location.hash + '?_=' + new Date().getTime();
             },
             addContact: function (model) {

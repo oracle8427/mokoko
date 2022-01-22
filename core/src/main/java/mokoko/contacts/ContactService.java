@@ -54,6 +54,10 @@ public class ContactService {
         return contactMapper.selectRecentCount(params);
     }
 
+    public List<Integer> getIDList(Map<String, Object> params) {
+        return contactMapper.selectIDList(params);
+    }
+
     public int unLinkGroupByContactID(int contactID) {
         return contactMapper.unlinkGroup(contactID);
     }
@@ -288,5 +292,11 @@ public class ContactService {
         contactMapper.updateContact(contact);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void removeContactByUser(List<Integer> idList) {
+        for (int id : idList)
+            this.deleteContact(id);
+
+    }
 
 }

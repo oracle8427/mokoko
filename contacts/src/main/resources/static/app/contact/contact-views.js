@@ -385,7 +385,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 var $closeButtons = this.$el.find('button.btn_close').add(this.$el.find('button.btn_type1'));
                 $closeButtons.click(function (event) {
                     event.preventDefault() && event.stopPropagation();
-                    if ('contact-import-loading' === self.model.get('action')) {
+                    if ('move-to-trash' === self.model.get('action')) {
+                        if (_.isFunction(self.model.get('cancel')))
+                            self.model.get('cancel')();
+                    } else if ('contact-import-loading' === self.model.get('action')) {
                         if (_.isFunction(self.model.get('cancel')))
                             self.model.get('cancel')();
                     }
@@ -397,8 +400,8 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     event.preventDefault() && event.stopPropagation();
                     self.close();
                     if ('move-to-trash' === self.model.get('action')) {
-                        if (_.isFunction(self.model.get('callback')))
-                            self.model.get('callback')();
+                        if (_.isFunction(self.model.get('confirm')))
+                            self.model.get('confirm')();
                     } else if ('contact-import-loading' === self.model.get('action')) {
                         if (_.isFunction(self.model.get('confirm')))
                             self.model.get('confirm')();
@@ -541,7 +544,6 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                                     '연락처가 복원되었습니다.' :
                                     '그룹 설정이 완료되었습니다.'
                             });
-                            app.vent.trigger('fetch:group-collection');
                             params['part'] = part;
                             app.vent.trigger('sync:contact-groups-information', params);
                             self.close();
@@ -616,7 +618,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         $this.addClass('reverse_on');
                         sortOrder = 'ASC'
                     }
-                    self.contactCollection.sort(sortField, sortOrder);
+                    self.contactCollection.sort({silent: true}, sortField, sortOrder);
                     app.vent.trigger('show:contact-list', self.contactCollection, self.part);
                 });
 
@@ -642,7 +644,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         $sortField.data('field', sortField);
                     $sortField.text($this.next('label').text().trim());
                     $('body').click();
-                    self.contactCollection.sort(sortField, 'ASC');
+                    self.contactCollection.sort({silent: true}, sortField, 'ASC');
                     app.vent.trigger('show:contact-list', self.contactCollection, self.part);
                 });
 
@@ -668,7 +670,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
 
                 this.$el.find('button.btn_del').click(function (event) {
                     event.preventDefault && event.stopPropagation();
-                    app.vent.trigger('confirm:move-to-trash-contacts', self.part);
+                    app.vent.trigger('confirm:move-to-trash-contacts');
                 });
 
                 this.$el.find('button#move_group').click(function (event) {
@@ -808,22 +810,36 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     })
                 });
             },
-            moveToTrash: function (part) {
-                var self = this;
+            moveToTrash: function () {
                 var $checkedBoxes = this.$checkBoxes.filter(':checked');
+                app.dimmedLayer.showDimmed();
+                if ($checkedBoxes.length === 0) {
+                    app.vent.trigger('show:alert-layer', {
+                        messages: ['연락처를 선택해주세요.'],
+                        callback: function () {
+                            app.dimmedLayer.hideDimmed();
+                        }
+                    });
+                    return;
+                }
+                var contactIDList = _.map($checkedBoxes, function (checkedBox) {
+                    return parseInt(checkedBox.value);
+                })
+                if (_.size(contactIDList) === 0) {
+                    app.dimmedLayer.hideDimmed();
+                    return;
+                }
+                this.model.get('part') === 'trash' ? this.removeContacts(contactIDList) : this.trash(contactIDList)
+            },
+            trash: function (contactIDList) {
+                var self = this;
                 app.vent.trigger('show:confirm-layer', {
                     action: 'move-to-trash',
                     messages: [
-                        $checkedBoxes.length + '개의 연락처를 삭제하시겠습니까?',
+                        contactIDList.length + '개의 연락처를 삭제하시겠습니까?',
                         '삭제된 연락처는 휴지통으로 이동됩니다.'
                     ],
-                    callback: function () {
-                        var contactIDList = _.map($checkedBoxes, function (checkedBox) {
-                            return parseInt(checkedBox.value);
-                        })
-                        if (_.size(contactIDList) === 0)
-                            return;
-                        
+                    confirm: function () {
                         new Backbone.Model({
                             id: 0
                         }).save({
@@ -832,18 +848,45 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                             url: 'contacts/trash',
                             patch: true,
                             success: function () {
-                                var models = _.filter(self.contactCollection.models, function (model) {
-                                    return _.contains(contactIDList, model.id)
-                                })
-                                if (_.size(models) > 0) {
-                                    app.vent.trigger('move:trash', {
-                                        part: part,
-                                        removedModels: models
-                                    });
-                                    app.vent.trigger('fetch:contact-count', ['all', 'recently', 'important']);
-                                }
+                                app.vent.trigger('move:trash', {
+                                    part: self.model.get('part'),
+                                    contactIDList: contactIDList
+                                });
+                            },
+                            complete: function () {
+                                app.dimmedLayer.hideDimmed();
                             }
                         });
+                    },
+                    cancel: function () {
+                        app.dimmedLayer.hideDimmed();
+                    }
+                });
+            },
+            removeContacts: function (contactIDList) {
+                app.vent.trigger('show:confirm-layer', {
+                    action: 'move-to-trash',
+                    messages: [
+                        '완전삭제 이후 복구는 불가능합니다.',
+                        '선택하신 ' + contactIDList.length + '개의 주소를 삭제하시겠습니까?'
+                    ],
+                    head: '완전삭제',
+                    confirm: function () {
+                        new Backbone.Model({
+                            id: 0
+                        }).destroy({
+                            url: 'contacts/remove?' + $.param({idList: contactIDList}),
+                            wait: true,
+                            success: function () {
+                                app.vent.trigger('remove:contacts', contactIDList);
+                            },
+                            complete: function () {
+                                app.dimmedLayer.hideDimmed();
+                            }
+                        });
+                    },
+                    cancel: function () {
+                        app.dimmedLayer.hideDimmed();
                     }
                 });
             }
