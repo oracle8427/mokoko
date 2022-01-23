@@ -24,6 +24,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 this.listenTo(app.vent, 'remove:contacts', this.removeContacts);
                 this.listenTo(app.vent, 'create:contact', this.createContact);
                 this.listenTo(app.vent, 'update:important', this.updateImportant);
+                this.listenTo(app.vent, 'paginate:contact-list',this.paginateContactList)
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -193,6 +194,15 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
             exportContact: function () {
                 this.contentLayout.showExportRegion();
             },
+            paginateContactList: function () {
+                contact.contactPaginator = new contact.ContactPaginator();
+                contact.contactPaginator.fetch({
+                    async: false
+                });
+                contact.contactCollection = new contact.ContactCollection(contact.contactPaginator.edges);
+                contact.contactCollection.sort({silent: true});
+                location.hash = '';
+            }
         });
 
         contact.addInitializer(function (options) {

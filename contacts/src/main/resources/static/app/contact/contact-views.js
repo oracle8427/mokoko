@@ -1638,11 +1638,15 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                 this.listenTo(app.vent, 'stop:import-contact', function () {
                     this.csvModel.clear();
                     this.render();
+                    app.vent.trigger('fetch:contact-count', ['all']);
+                    app.vent.trigger('paginate:contact-list');
                 });
 
                 this.listenTo(app.vent, 'complete:import-contact', function () {
+                    app.vent.trigger('fetch:contact-count', ['all']);
                     app.vent.trigger('complete:import-loading');
                     app.vent.trigger('stop:import-contact');
+                    app.vent.trigger('paginate:contact-list');
                 });
 
             },
@@ -1782,7 +1786,6 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     complete: function () {
                         app.vent.trigger('increment:import-count', buffer.length);
                         if (contacts.length === 0) {
-                            app.vent.trigger('fetch:contact-count', ['all']);
                             app.vent.trigger('complete:import-contact');
                             return;
                         }

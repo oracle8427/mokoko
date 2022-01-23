@@ -1,1 +1,0 @@
-ALTER TABLE contact_expansion CHANGE COLUMN special_day special_day VARCHAR(50) NULL DEFAULT NULL;

@@ -1,1 +1,0 @@
-ALTER TABLE contact ADD important tinyint(4) default 0;
