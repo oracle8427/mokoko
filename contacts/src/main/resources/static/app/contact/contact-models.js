@@ -22,6 +22,54 @@ define(['app'], function (app) {
             }
         });
 
+        contact.ContactPaginator = Backbone.Model.extend({
+            url: 'contacts/page',
+            initialize: function (attributes, options) {
+                this.endCursor = 0;
+                this.perPage = 100;
+                this.edges = [];
+                if (attributes && attributes.trash)
+                    this.trash = attributes.trash
+                Backbone.Model.prototype.initialize.apply(this, arguments);
+            },
+            parse: function (response) {
+                this.endCursor = response.endCursor
+                this.hasNext = response.hasNext
+                this.perPage = response.perPage
+                this.totalRecords = response.totalRecords
+                this.totalPages = Math.ceil(this.totalRecords / this.perPage);
+
+                if (response.edges && response.edges.length > 0) {
+                    var self = this;
+                    _.each(response.edges, function (model) {
+                        self.edges.push(model);
+                    })
+                }
+
+                if (this.hasNext)
+                    this.fetch({
+                        async: false
+                    });
+            },
+            fetch: function (options) {
+                if (!options)
+                    options = {};
+
+                var params = {
+                    endCursor: this.endCursor,
+                    perPage: this.perPage
+                }
+                if (this.trash)
+                    params.trash = this.trash;
+                if (options.data) {
+                    params = _.extend(params, options.data);
+                }
+
+                options.data = $.param(params);
+                return Backbone.Model.prototype.fetch.apply(this, [options]);
+            },
+        });
+
         contact.ContactCollection = Backbone.Collection.extend({
             url: 'contacts',
             model: contact.ContactModel,

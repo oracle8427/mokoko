@@ -10,15 +10,21 @@ public interface ContactMapper {
 
     List<Contact> selectAllContacts(String userID);
 
+    List<Contact> selectContactPaginator(ContactPaginator contactPaginator);
+
     Contact selectContact(int id);
 
     List<Contact> selectGroupContacts(Map<String, Object> params);
+
+    List<Contact> selectGroupContactPaginator(ContactPaginator contactPaginator);
 
     List<Integer> selectIDListAtGroup(int groupID);
 
     int selectRecentCount(Map<String, Object> params);
 
     int selectAllCount(Map<String, Object> params);
+
+    int selectTrashCount(Map<String, Object> params);
 
     int selectImportantCount(Map<String, Object> params);
 

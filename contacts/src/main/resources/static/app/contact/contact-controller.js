@@ -3,19 +3,18 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
     app.module('contact', function (contact, app, Backbone, Marionette, $, _) {
 
         contact.Controller = Backbone.Marionette.Controller.extend({
-            initialize: function (options) {
+            initialize: function () {
                 app.vent.trigger('show:overlay-loading');
                 contact.groupCollection = new contact.GroupCollection();
-                contact.contactCollection = new contact.ContactCollection();
+                contact.contactPaginator = new contact.ContactPaginator();
+                contact.contactPaginator.fetch({
+                    async: false
+                });
+                contact.contactCollection = new contact.ContactCollection(contact.contactPaginator.edges);
+                contact.contactCollection.sort({silent: true});
                 contact.contactGroupCollection = new contact.ContactCollection();
                 contact.trashCollection = new contact.ContactCollection();
-                contact.contactCollection.fetch({
-                    silent: true,
-                    async: false,
-                    success: function () {
-                        contact.contactCollection.sort({silent: true});
-                    }
-                });
+
                 this.showSidebarView();
                 this.showContentLayout();
                 app.vent.trigger('hide:overlay-loading');
@@ -24,6 +23,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 this.listenTo(app.vent, 'move:trash', this.moveToTrash);
                 this.listenTo(app.vent, 'remove:contacts', this.removeContacts);
                 this.listenTo(app.vent, 'create:contact', this.createContact);
+                this.listenTo(app.vent, 'update:important', this.updateImportant);
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -88,14 +88,25 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 app.vent.trigger('show:contact-list', collection, part);
             },
             trash: function (part) {
-                contact.trashCollection.fetch({
-                    url: contact.trashCollection.url + '?' + $.param({'trash': 2}),
-                    success: function () {
-                        contact.trashCollection.sort({silent: true});
-                        app.vent.trigger('show:contact-search', contact.trashCollection, part);
-                        app.vent.trigger('show:contact-list', contact.trashCollection, part);
-                    }
+
+                var trashContactPaginator = new contact.ContactPaginator({
+                    trash: 2
                 });
+                trashContactPaginator.fetch({
+                    async: false
+                });
+                contact.trashCollection.reset(trashContactPaginator.edges, {silent: true});
+                app.vent.trigger('show:contact-search', contact.trashCollection, part);
+                app.vent.trigger('show:contact-list', contact.trashCollection, part);
+
+                // contact.trashCollection.fetch({
+                //     url: contact.trashCollection.url + '?' + $.param({'trash': 2}),
+                //     success: function () {
+                //         contact.trashCollection.sort({silent: true});
+                //         app.vent.trigger('show:contact-search', contact.trashCollection, part);
+                //         app.vent.trigger('show:contact-list', contact.trashCollection, part);
+                //     }
+                // });
             },
             syncContactGroup: function (params) {
                 if (!params)
@@ -158,6 +169,23 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 location.hash = location.hash.indexOf('trash') > -1 ?
                     '' :
                     location.hash + '?_=' + new Date().getTime();
+            },
+            updateImportant: function (contactID, important) {
+                var contactModel = contact.contactCollection.find('id', contactID);
+                if (!contactID)
+                    throw new Error('Not Found ContactModel ID: ' + contactID);
+
+                contactModel.save({
+                    id: contactModel.id,
+                    important: important
+                }, {
+                    patch: true,
+                    success: function () {
+                        app.vent.trigger('fetch:contact-count', ['important'], {
+                            important: important === 1 ? 1 : -1,
+                        });
+                    }
+                })
             },
             importContact: function () {
                 this.contentLayout.showImportRegion();

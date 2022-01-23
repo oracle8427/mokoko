@@ -63,6 +63,28 @@ public class ContactController {
         return contacts;
     }
 
+    @GetMapping("page")
+    public ContactPaginator getContactPaginator(@RequestParam Map<String, Object> params) {
+        String username = userWrapperService.getUsername();
+        if (username == null || username.length() == 0)
+            throw new NotFoundException("Not Found User");
+
+        params.put("userID", username);
+        ContactPaginator paginator = new ContactPaginator();
+        if (params.containsKey("trash")) {
+            Group trash = groupService.getTrash();
+            params.put("groupID", trash.getId());
+            paginator.setParameters(params);
+            paginator.setEdges(contactService.getGroupContactPaginator(paginator));
+            paginator.setTotalRecords(contactService.getTrashCount(params));
+        } else {
+            paginator.setParameters(params);
+            paginator.setEdges(contactService.getContactPaginator(paginator));
+            paginator.setTotalRecords(contactService.getAllCount(params));
+        }
+        return paginator;
+    }
+
     @PostMapping(value = "trash", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")
     public ResponseEntity<?> moveToTrash(@RequestParam String model) {
         String username = userWrapperService.getUsername();

@@ -101,6 +101,34 @@
            OR group_type IS NULL
     </select>
 
+    <select id="selectContactPaginator" resultMap="ContactResultMap">
+        SELECT group_id, name, t.*
+        FROM (
+            SELECT <include refid="ContactsColumns" />, cr.created recent_date
+            FROM (
+                SELECT *
+                FROM contact
+                WHERE user_id = #{userID}
+                LIMIT #{endCursor}, #{perPage}
+            ) c
+                LEFT JOIN contact_expansion ce
+                    ON c.id = ce.contact_id
+                LEFT JOIN contact_recent cr
+                    ON c.id = cr.contact_id
+        <!-- ORDER BY c.sort_no -->
+        ) t
+            LEFT JOIN (
+                SELECT group_id, ccg.contact_id, name, group_type
+                FROM contact_group cg
+                    INNER JOIN contact_contact_group ccg
+                        ON cg.id = ccg.group_id
+                WHERE user_id = #{userID}
+        ) cg
+            ON id = cg.contact_id
+        WHERE group_type <![CDATA[ < ]]> 2
+            OR group_type IS NULL
+    </select>
+
     <select id="selectContact" resultMap="ContactResultMap">
         SELECT <include refid="ContactsColumns" />, cr.created recent_date
         FROM contact c
@@ -140,6 +168,31 @@
                 ON contacts.id = cg.contact_id
     </select>
 
+    <select id="selectGroupContactPaginator" resultMap="ContactResultMap">
+        SELECT group_id, name, contacts.*
+        FROM (
+            SELECT <include refid="ContactsColumns" />
+            FROM (
+                SELECT contact_id
+                FROM contact_contact_group
+                WHERE group_id = #{groupID}
+                LIMIT #{endCursor}, #{perPage}
+            ) ccg
+                INNER JOIN contact c
+                    ON c.id = ccg.contact_id
+                LEFT JOIN contact_expansion ce
+                    ON c.id = ce.contact_id
+        ) contacts
+            LEFT JOIN (
+                SELECT group_id, contact_id, name
+                FROM contact_group cg
+                    INNER JOIN contact_contact_group ccg
+                        ON cg.id = ccg.group_id
+                WHERE  user_id = #{userID}
+            ) cg
+                ON contacts.id = cg.contact_id
+    </select>
+
     <select id="selectIDListAtGroup" resultType="int">
         SELECT ccg.contact_id
         FROM contact_contact_group ccg
@@ -162,15 +215,24 @@
         SELECT (
            SELECT count(*)
            FROM contact
-           WHERE user_id = 'mailmaster@mokoko.shop'
+           WHERE user_id = #{userID}
         ) - (
            SELECT count(*)
            FROM contact_group cg
                     INNER JOIN contact_contact_group ccg
                                ON cg.id = ccg.group_id
-           WHERE user_id  = 'mailmaster@mokoko.shop'
+           WHERE user_id  = #{userID}
              AND group_type = 2
         ) all_count
+    </select>
+
+    <select id="selectTrashCount" resultType="int">
+        SELECT count(*)
+        FROM contact_group cg
+                 INNER JOIN contact_contact_group ccg
+                            ON cg.id = ccg.group_id
+        WHERE user_id = #{userID}
+          AND group_type = 2
     </select>
 
     <select id="selectImportantCount" resultType="int">

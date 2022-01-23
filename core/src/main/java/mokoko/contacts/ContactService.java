@@ -30,6 +30,10 @@ public class ContactService {
         return contactMapper.selectAllContacts(userID);
     }
 
+    public List<Contact> getContactPaginator(ContactPaginator contactPaginator) {
+        return contactMapper.selectContactPaginator(contactPaginator);
+    }
+
     public Contact getContact(int id) {
         return contactMapper.selectContact(id);
     }
@@ -38,12 +42,20 @@ public class ContactService {
         return contactMapper.selectGroupContacts(params);
     }
 
+    public List<Contact> getGroupContactPaginator(ContactPaginator contactPaginator) {
+        return contactMapper.selectGroupContactPaginator(contactPaginator);
+    }
+
     public List<Integer> getIDListAtGroup(int groupID) {
         return contactMapper.selectIDListAtGroup(groupID);
     }
 
     public int getAllCount(Map<String, Object> params) {
         return contactMapper.selectAllCount(params);
+    }
+
+    public int getTrashCount(Map<String, Object> params) {
+        return contactMapper.selectTrashCount(params);
     }
 
     public int getImportantCount(Map<String, Object> params) {

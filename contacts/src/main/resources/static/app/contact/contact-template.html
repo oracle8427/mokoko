@@ -356,11 +356,16 @@
         style="position: relative; height: 162px; will-change: transform; min-width: initial;">
 
 <%  _.each(contactCollection.models, function(contactModel) { %>
-        <li class="_vtScrollPos draggable" draggable="true">
+        <li class="_vtScrollPos draggable" draggable="true" data-id="<%- contactModel.id %>">
             <div class="box_profile">
                 <div class="ico_profile" area-hidden="true">
+                    <%
+                        var firstname = contactModel.get('firstname');
+                        var firstWord = firstname.charAt(0);
+                        var rgb = characterMap[firstWord.toLowerCase()]
+                    %>
                     <span class="txt_profile"
-                          style="background-color: rgb(129, 172, 130);"><%- contactModel.get('lastname') %></span>
+                          style="background-color: <%- rgb %>"><%- firstWord.toUpperCase() %></span>
                     <svg class="ico_obj" width="540" height="540px" viewBox="0 0 540 540" version="1.1"
                          xmlns="http://www.w3.org/2000/svg">
                         <path class="ico_path"
@@ -368,10 +373,26 @@
                     </svg>
                 </div>
                 <div class="item_chk item_profile">
-                    <input type="checkbox" name="inpAddr" id="inpAddr<%- contactModel.id %>" class="inp_chk"
+                    <input type="checkbox" name="inpAddr" id="inpAddr<%- contactModel.id %>" class="inp_chk contact_chk"
                            value="<%- contactModel.id %>">
-                    <label class="lab_chk" for="inpAddr<%- contactModel.id %>">
-                        <span class="ico_addressbook ico_chk"><%- contactModel.get('fullName') %></span>
+                    <%
+                        var firstname = contactModel.get('firstname');
+                        var lastname = contactModel.get('lastname');
+                        var name;
+                        if ( firstname && lastname) {
+                            if (/^[a-zA-Z0-9]*$/.test(firstname)) {
+                                name = firstname + ' ' + lastname
+                            } else {
+                                name = lastname + firstname
+                            }
+                        } else if (firstname) {
+                            name = firstname;
+                        } else if (lastname) {
+                            name = lastname;
+                        }
+                    %>
+                    <label class="lab_chk contact_chk" for="inpAddr<%- contactModel.id %>">
+                        <span class="ico_addressbook ico_chk contact_chk"><%- name %></span>
                     </label>
                 </div>
             </div>
@@ -380,7 +401,7 @@
                     <div class="inner_info" role="text">
                         <div class="info_address info_name">
                             <strong class="screen_out">이름</strong>
-                            <span class="txt_info"><%- contactModel.get('fullName') %></span>
+                            <span class="txt_info"><%- name %></span>
                         </div>
                         <div class="info_address info_email" role="text">
                         <% var expansions =  contactModel.get('contactExpansions'); %>
@@ -413,7 +434,7 @@
                     <input type="checkbox" id="inpFav<%- contactModel.id %>" name="inpFav1" class="inp_chk"
                            value="<%- contactModel.id %>"
                            <%- contactModel.get('important') == 1 ? 'checked=checked' : '' %>>
-                    <label class="lab_chk lab_fav" for="inpFav<%- contactModel.id %>">
+                    <label class="lab_chk lab_fav ico_fav" for="inpFav<%- contactModel.id %>">
                         <span class="ico_addressbook ico_fav">즐겨찾기 - <%- contactModel.get('fullName') %></span>
                     </label>
                 </div>
@@ -421,15 +442,15 @@
             <% } %>
 
             <div class="wrap_edit" aria-hidden="true">
-                <button type="button" class="btn_edit btn_modify" value="<%- contactModel.id %>">
+                <button type="button" class="btn_edit btn_modify ico_modify" value="<%- contactModel.id %>">
                     <span class="ico_addressbook ico_modify">수정</span>
                 </button>
                 <div class="box_layer">
-                    <button type="button" class="btn_edit btn_layer" value="<%- contactModel.id %>">
+                    <button type="button" class="btn_edit btn_layer ico_group" value="<%- contactModel.id %>">
                         <span class="ico_addressbook ico_group">그룹</span>
                     </button>
                 </div>
-                <button type="button" class="btn_edit btn_del" value="<%- contactModel.id %>">
+                <button type="button" class="btn_edit btn_del ico_del" value="<%- contactModel.id %>">
                     <span class="ico_addressbook ico_del">삭제</span>
                 </button>
             </div>
@@ -440,13 +461,39 @@
 </script>
 
 <script type="text/template" id="no-search-result-template">
-    <p class="txt_notice">
-        <span class="ico_addressbook ico_notice">안내</span>연락처는 최대 2만개까지 저장할 수 있습니다.</p>
+    <%
+        var notice = {
+            recently : '최근 이용한 연락처는 최대 100일간 보관됩니다.',
+            trash : '휴지통은 최대 1년간 보관됩니다. (이후 자동삭제)'
+        }
+    %>
+    <p class="txt_notice"><span class="ico_addressbook ico_notice">안내</span><%- notice[part] || '연락처는 최대 2만개까지 저장할 수 있습니다.' %></p>
     <div class="wrap_blank">
         <div class="inner_blank">
             <img src="img/blank/img_blank07.png" class="img_blank" alt="">
             <p class="desc_g">검색 결과가 없습니다.</p>
         </div>
+    </div>
+</script>
+
+<script type="text/template" id="welcome-to-contacts-template">
+    <%
+        var notice = {
+            recently : '최근 이용한 연락처는 최대 100일간 보관됩니다.',
+            trash : '휴지통은 최대 1년간 보관됩니다. (이후 자동삭제)'
+        }
+    %>
+    <p class="txt_notice"><span class="ico_addressbook ico_notice">안내</span><%- notice[part] || '연락처는 최대 2만개까지 저장할 수 있습니다.' %></p>
+    <div class="wrap_blank">
+        <div class="inner_blank">
+            <span class="img_blank img_blank1">
+                <img src="img/blank/<%- part === 'trash' ? 'img_blank02.png' : 'img_blank1_200117.png'  %>" class="thumb_g" alt="">
+            </span>
+        <%  if (part === 'trash') { %>
+            <p class="desc_g">휴지통에 연락처가 없습니다.</p>
+        <%  } else { %>
+            <p class="desc_g">주소록에 오신것을 환영합니다.<br>연락처를 추가하려면 <em classname="emph_g">주소 추가</em> 버튼을 누르세요.</p></div>
+        <%  } %>
     </div>
 </script>
 
@@ -874,6 +921,247 @@
             <span class="ico_addressbook ico_addition">추가</span>
         </button>
     <% } %>
+    </div>
+</script>
+
+<script type="text/template" id="contact-layer-template">
+    <% console.log(contact); %>
+    <div class="layer_head"><strong class="screen_out">상세보기</strong></div>
+    <div class="layer_body">
+        <div class="address_head">
+            <div class="ico_profile">
+                <% var firstChar = (contact.firstname && contact.firstname[0]) && contact.firstname[0] ||
+                                    (contact.lastname && contact.lastname[0]) && contact.lastname[0]; %>
+                <span class="txt_profile" style="background: rgb(231, 219, 172);"><%- firstChar %></span>
+                <svg class="ico_obj" width="540" height="540px" viewBox="0 0 540 540" version="1.1"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path class="ico_path"
+                          d="M-30,-30 L570,-30 L570,570 L-30,570 L-30,-30 Z M0,270 C0,468.754 71.251,540 270,540 C468.754,540 540,468.754 540,270 C540,71.251 468.754,0 270,0 C71.251,0 0,78.749 0,270 Z"></path>
+                </svg>
+            </div>
+            <div class="bundle_address">
+                <div class="inner_bundle">
+                    <div class="info_address info_name" role="text">
+                        <strong class="screen_out">이름</strong>
+                        <%
+                            var name;
+                            if ( contact.firstname && contact.lastname) {
+                                if (/^[a-zA-Z0-9]*$/.test(contact.firstname)) {
+                                    name = contact.firstname + ' '  + contact.lastname;
+                                } else {
+                                    name = contact.lastname + contact.firstname;
+                                }
+                            } else if (contact.firstname) {
+                                name = contact.firstname;
+                            } else if (contact.lastname) {
+                                name = contact.lastname;
+                            }
+                        %>
+                        <p class="txt_info"><%- name || ''%></p>
+                    </div>
+                    <div class="info_address info_group" role="text">
+                        <strong class="screen_out">그룹</strong>
+                        <div class="box_info">
+                            <% _.each(contact.groups, function(group) { %>
+                                <span class="ico_bubble"><%-group.name%></span>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="address_body">
+            <div class="bundle_address">
+                <div class="info_address" role="text">
+                    <strong class="tit_info">
+                        <span class="ico_addressbook ico_name"><%-contact.nickname || ''%></span>
+                    </strong>
+                    <p class="txt_info"><%-contact.nickname || ''%></p>
+                </div>
+                <%  var expansions = _.filter(contact.contactExpansions, 'email');
+                    console.log(expansions);
+                    if (expansions.length === 0) { %>
+                        <div class="info_address" role="text">
+                            <strong class="tit_info">
+                                <span class="ico_addressbook ico_email">전화</span>
+                                <span class="screen_out">추가 이메일</span>
+                            </strong>
+                            <p class="txt_info txt_nodata">&nbsp;미입력</p>
+                        </div>
+                <%  } else {
+                        _.each(expansions, function(expansion, i) { %>
+                            <div class="info_address<%- i > 0 ? ' info_addition' : '' %>" role="text">
+                                <strong class="tit_info">
+                <%          if (i === 0) { %>
+                                    <span class="ico_addressbook ico_email">전화</span>
+                <%          } %>
+                                    <span class="screen_out">추가 이메일</span>
+                                </strong>
+                                <p class="txt_info"><%- expansion.email %></p>
+                            </div>
+                <%      });
+                    }
+
+                    var phoneType = {
+                        'home' : '집',
+                        'company' : '직장',
+                        'mobile' : '휴대폰',
+                        'fax' : '팩스',
+                        'etc' : '기타'
+                    }
+                    expansions = _.filter(contact.contactExpansions, 'phone');
+                    if (expansions.length === 0) { %>
+                        <div class="info_address" role="text">
+                            <strong class="tit_info">
+                                <span class="ico_addressbook ico_phone">전화</span>
+                                <span class="screen_out">추가 전화</span>
+                            </strong>
+                            <p class="txt_info txt_nodata">&nbsp;미입력</p>
+                        </div>
+                <%  } else {
+                        _.each(expansions, function(expansion, i) { %>
+                            <div class="info_address<%- i > 0 ? ' info_addition' : '' %>" role="text">
+                                <strong class="tit_info">
+                <%          if (i === 0) { %>
+                                    <span class="ico_addressbook ico_phone">전화</span>
+                <%          } %>
+                                    <span class="screen_out">추가 전화</span>
+                                </strong>
+                                <p class="txt_info"><%- expansion.phone %><span class="ico_bubble"><%- phoneType[expansion.phoneType] || phoneType['home']%></span></p>
+                            </div>
+                <%      });
+                    }
+                    if (contact.birth) { %>
+                        <div class="info_address" role="text">
+                            <strong class="tit_info">
+                                <span class="ico_addressbook ico_birth">생일</span>
+                            </strong>
+                            <p class="txt_info"><%- contact.birth %></p>
+                        </div>
+                <%  }
+                    var specialDayType = {
+                        'anniversary' : '기념일',
+                        'etc' : '기타'
+                    }
+
+                    _.each(contact.contactExpansions, function(expansion, i) {
+                        if (!expansion.specialDay)
+                            return; %>
+                            <div class="info_address<%- i > 0 ? ' info_addition' : '' %>" role="text">
+                                <strong class="tit_info">
+                <%      if (i === 0) { %>
+                                    <span class="ico_addressbook ico_day"></span>
+                <%      } %>
+                                </strong>
+                                <p class="txt_info"><%- expansion.specialDay%><span class="ico_bubble"><%- specialDayType[expansion.specialDayType] || specialDayType['anniversary'] %></span></p>
+                            </div>
+                <%  });
+
+                    var snsType = {
+                        'blog' : '블로그',
+                        'homepage' : '홈페이지',
+                        'etc' : '기타'
+                    }
+                    _.each(contact.contactExpansions, function(expansion, i) {
+                        if (!expansion.sns)
+                            return; %>
+                            <div class="info_address<%- i > 0 ? ' info_addition' : '' %>" role="text">
+                                <strong class="tit_info">
+                <%      if (i === 0) { %>
+                                    <span class="ico_addressbook ico_link">추가 링크</span>
+                <%      } %>
+                                </strong>
+                                <p class="txt_info">
+                                    <a href="<%- expansion.sns %>" target="_blank" rel="noreferrer"><%- expansion.sns %></a>
+                                    <span class="ico_bubble"><%- snsType[expansion.snsType] || snsType['blog'] %></span>
+                                </p>
+                            </div>
+                <%  });
+
+                    _.each(contact.contactExpansions, function(expansion, i) {
+                        if (!expansion.messenger)
+                            return; %>
+                            <div class="info_address<%- i > 0 ? ' info_addition' : '' %>" role="text">
+                                <strong class="tit_info">
+                <%      if (i === 0) { %>
+                                    <span class="ico_addressbook ico_msn">메신저</span>
+                <%      } %>
+                                </strong>
+                                <p class="txt_info">MACLEAD</p>
+                            </div>
+                <%  });
+
+                    var addressType = {
+                        'home' : '집',
+                        'company' : '직장',
+                        'etc' : '기타'
+                    }
+                    _.each(contact.contactExpansions, function(expansion, i) {
+                        if (!expansion.messenger)
+                            return; %>
+                            <div class="info_address<%- i > 0 ? ' info_addition' : '' %>" role="text">
+                                <strong class="tit_info">
+                <%      if (i === 0) { %>
+                                    <span class="ico_addressbook ico_location">주소</span>
+                <%      } %>
+                                </strong>
+                                <p class="txt_info"><%- expansion.address %><span class="ico_bubble"><%- addressType[expansion.addressType] || addressType['home'] %></span></p>
+                            </div>
+                <%  });
+
+                    if (contact.organization || contact.position) { %>
+                        <div class="info_address" role="text">
+                            <strong class="tit_info">
+                                <span class="ico_addressbook ico_office">직장</span>
+                            </strong>
+                            <%
+                                var office;
+                                if (contact.organization && contact.position)
+                                    office = contact.organization +  contact.position;
+                                else if (contact.organization)
+                                    office  = contact.organization;
+                                else if (contact.position)
+                                    office = contact.position;
+                            %>
+                            <p class="txt_info"><%- office || '' %></p>
+                        </div>
+                <%  }
+
+                    if (contact.notes) { %>
+                        <div class="info_address" role="text">
+                            <strong class="tit_info">
+                                <span class="ico_addressbook ico_meno">메모</span>
+                            </strong>
+                            <p class="txt_info"><%- contact.notes %></p>
+                        </div>
+                <%  } %>
+            </div>
+        </div>
+        <div class="wrap_edit">
+        <% if (part !== 'trash') { %>
+            <div class="item_chk item_fav">
+                <input type="checkbox" id="inpViewFav" name="inpViewFav" class="inp_chk"
+                       value="<%- contact.id %>" <%- contact.important === 1 ? 'checked=checked' : '' %>>
+                <label class="lab_chk lab_fav" for="inpViewFav">
+                    <span class="ico_addressbook ico_fav2">즐겨찾기 선택하기</span>
+                </label>
+            </div>
+
+            <button type="button" class="btn_edit ico_modify2">
+                <span class="ico_addressbook ico_modify2">수정</span>
+            </button>
+        <% } %>
+            <button type="button" class="btn_edit ico_group2">
+                <span class="ico_addressbook ico_group2">그룹</span>
+            </button>
+            <button type="button" class="btn_edit ico_del2">
+                <span class="ico_addressbook ico_del2">삭제</span>
+            </button>
+        </div>
+        <div class="group_settings_layer_region"></div>
+    </div>
+    <div class="layer_foot">
+        <button type="button" class="btn_close">닫기</button>
     </div>
 </script>
 
