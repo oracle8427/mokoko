@@ -12,4 +12,18 @@
         WHERE id = #{id}
     </select>
 
+    <select id="selectGroupAuthorities" resultType="map">
+        SELECT g.id,
+               g.group_name,
+               ga.authority
+        FROM users u,
+             group_permission gp,
+             groups g,
+             group_authorities ga
+        WHERE u.id = #{id}
+          AND u.auth = gp.users_auth
+          AND gp.group_id = g.id
+          AND g.id = ga.group_id
+    </select>
+
 </mapper>

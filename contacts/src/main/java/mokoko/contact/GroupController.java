@@ -5,7 +5,7 @@ import mokoko.contacts.Group;
 import mokoko.contacts.GroupService;
 import mokoko.error.BadRequestException;
 import mokoko.error.NotFoundException;
-import mokoko.user.UserWrapperService;
+import mokoko.springsecurity.UserWrapperService;
 import mokoko.util.jackson.JacksonJsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import mokoko.contacts.*;
 import mokoko.error.BadRequestException;
 import mokoko.error.NotFoundException;
-import mokoko.user.UserWrapperService;
+import mokoko.springsecurity.UserWrapperService;
 import mokoko.util.IOUtil;
 import mokoko.util.jackson.JacksonJsonUtil;
 import org.slf4j.Logger;

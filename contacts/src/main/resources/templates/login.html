@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko-KR">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <title>카카오계정</title>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta content="website">
+    <meta content="카카오계정 로그인">
+    <style type="text/css">
+        @charset "UTF-8";
+        .account_comm {
+            display: table;
+            width: 100%;
+            min-width: 320px;
+            height: 100%;
+            border-collapse: separate;
+        }
+
+        body, th, td, input, select, textarea, button {
+            font-size: 16px;
+            line-height: 1.5;
+            font-family: NotoSans-Regular, AppleSDGothicNeo-Regular, "맑은 고딕", Malgun Gothic, "돋움", dotum, sans-serif;
+            color: #7c7c7c;
+            letter-spacing: -0.03em;
+            word-wrap: break-word;
+        }
+
+        body {
+            background: #fff;
+            -webkit-text-size-adjust: none;
+        }
+
+        .account_comm #kakaoWrap {
+            position: relative;
+            display: table-cell;
+            height: 100%;
+            vertical-align: middle;
+            padding: 50px 0;
+        }
+
+        body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, textarea, p, blockquote, th, td, input, select, button {
+            margin: 0;
+        }
+
+        .account_comm #kakaoHead {
+            max-width: 520px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        div[data-role=page].km-page-active {
+            display: block;
+        }
+
+        #kakaoContent, #mArticle {
+            display: block;
+        }
+
+        .login_type3 #mArticle {
+            padding: 59px 0;
+        }
+
+        .cont_login #mArticle {
+            min-height: 545px;
+        }
+
+        .login_type3 #mArticle {
+            max-width: 100%;
+            margin-top: 0;
+            border: 0;
+        }
+
+        .account_comm #mArticle {
+            position: relative;
+            margin: 40px auto;
+            border-radius: 2px;
+            box-sizing: border-box;
+        }
+
+        .login_type3 .login_banner {
+            text-align: center;
+            font-size: 0;
+        }
+
+        .login_type3 .wrap_form {
+            max-width: 420px;
+        }
+
+        .login_type3 .wrap_form {
+            display: inline-block;
+            vertical-align: top;
+            text-align: left;
+            width: 100%;
+            padding: 60px 70px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #e5e5e5;
+        }
+
+        .login_type3 #kakaoServiceLogo {
+            margin: 0 0 30px 0;
+        }
+
+        #kakaoServiceLogo {
+            display: inline-block;
+            width: 88px;
+            height: 27px;
+            margin: 0 auto;
+            line-height: 1;
+            vertical-align: top;
+            background: url(./img/ico_account-e8750da61bf611ac86a0dd8350c4fd35e3e71cca4885218a9052a286df0222f8);
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-block-start: 0.67em;
+            margin-block-end: 0.67em;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+            font-weight: bold;
+        }
+
+        .login_type3 .wrap_form {
+            text-align: left;
+        }
+
+        fieldset {
+            min-width: 0;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        fieldset, img {
+            border: 0 none;
+        }
+
+        fieldset {
+            display: block;
+            margin-inline-start: 2px;
+            margin-inline-end: 2px;
+            padding-block-start: 0.35em;
+            padding-inline-start: 0.75em;
+            padding-inline-end: 0.75em;
+            padding-block-end: 0.625em;
+            min-inline-size: min-content;
+        }
+
+        .screen_out {
+            overflow: hidden;
+            position: absolute;
+            width: 0;
+            height: 0;
+            line-height: 0;
+            text-indent: -9999px;
+        }
+
+        legend {
+            display: block;
+            padding-inline-start: 2px;
+            padding-inline-end: 2px;
+            border-width: initial;
+            border-style: none;
+            border-color: initial;
+            border-image: initial;
+        }
+
+        .item_tf {
+            position: relative;
+            padding-right: 0;
+        }
+
+        .cont_login .wrap_btn {
+            margin-top: 40px;
+        }
+
+        .item_tf .tf_g[type=password] {
+            letter-spacing: 1px;
+        }
+
+        .item_tf .tf_g {
+            width: 100%;
+            height: 48px;
+            border-style: solid;
+            border-width: 0 0 2px 0;
+            border-color: #ebebeb;
+            padding: 11px 70px 8px 0;
+            color: #252525;
+            outline: 0;
+            border-radius: 0;
+            box-sizing: border-box;
+            caret-color: #191919;
+            text-decoration: none;
+        }
+
+        input:not(:-webkit-autofill) {
+            animation-name: onautofillcancel;
+        }
+
+        label, button, a, input {
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+        }
+
+        .cont_login .wrap_btn {
+            margin-top: 40px;
+        }
+
+        .wrap_btn .btn_confirm {
+            background-color: #fee500;
+        }
+
+        .wrap_btn .btn_g {
+            display: block;
+            width: 100%;
+            height: 50px;
+            padding: 0;
+            border: 0;
+            border-radius: 4px;
+            font-size: 15px;
+            color: #191919;
+        }
+
+        .btn_g {
+            box-sizing: border-box;
+        }
+    </style>
+
+    <style>
+        input:-webkit-autofill {
+            animation-name: onautofillstart;
+        }
+
+        input:not(:-webkit-autofill) {
+            animation-name: onautofillcancel;
+        }
+
+        @keyframes onautofillstart {
+            from {
+            }
+        }
+
+        @keyframes onautofillcancel {
+            from {
+            }
+        }
+    </style>
+
+    <script>
+        function listenEvent(eventObj, event, eventHandler) {
+            if (eventObj.addEventListener) {
+                eventObj.addEventListener(event, eventHandler, false);
+            } else if (eventObj.attachEvent) {
+                event = "on" + event;
+                eventObj.attachEvent(event, eventHandler);
+            } else {
+                eventObj["on" + event] = eventHandler;
+            }
+        }
+
+        function cancelEvent(event) {
+            if (event.preventDefault) {
+                event.preventDefault();
+            } else {
+                event.returnValue = false;
+            }
+        }
+
+        window.onload = function () {
+            var form = document.forms[0];
+            listenEvent(form, "submit", validateSubmit);
+            loginFocus();
+        };
+
+        function validateSubmit(event) {
+            event = event ? event : window.event;
+            var form = document.forms[0];
+
+            var username = form.elements["username"];
+            var j_username = form.elements["j_username"];
+            if (!username || !username.value || username.value.length === 0) {
+                alert('아이디를 입력하세요.');
+                cancelEvent(event);
+                return;
+            }
+            j_username.value = username.value + "@mokoko.shop";
+
+            var password = form.elements["password"];
+            var j_password = form.elements["j_password"];
+            if (!password || !password.value || password.value.length === 0) {
+                alert('패스워드를 입력하세요.');
+                cancelEvent(event);
+                return;
+            }
+            j_password.value = password.value;
+            password.value = '';
+            form.submit();
+            return true;
+        }
+
+        function loginFocus() {
+            var form = document.forms[0];
+            var username = form.elements["username"];
+            var password = form.elements["j_password"];
+            if (!username.value || username.value.length === 0) {
+                username.focus();
+            } else {
+                password.focus();
+            }
+        }
+    </script>
+</head>
+<body class="account_comm login_type3" style="">
+<div id="kakaoWrap">
+    <div id="kakaoHead" role="banner" style="display: none;">
+
+    </div>    <!-- // kakaoHead -->
+    <hr class="hide">
+
+    <div id="pageLogin" data-role="page" data-account-type="login_type3" class="login_content_wrap km-page-active"
+         data-url="pageLogin">
+        <div id="kakaoContent" class="cont_login" role="main">
+            <div id="cMain">
+                <div id="mArticle">
+                    <div class="login_banner">
+
+                        <div class="wrap_form">
+                            <h1 id="kakaoServiceLogo">
+                                <span class="ir_wa">kakao</span>
+                            </h1>
+                            <div class="login_kakaomail">
+                                <form id="login-form" th:action="@{/j_spring_security_check}" method="post"
+                                      onsubmit="return false;">
+                                    <fieldset class="fld_login">
+                                        <legend class="screen_out">카카오 계정 로그인 폼</legend>
+                                        <input type="hidden" name="j_username" value="">
+                                        <input type="hidden" name="j_password" value="">
+                                        <input type="hidden" th:name="${_csrf.parameterName}"
+                                               th:value="${_csrf.token}"/>
+                                        <div id="loginEmailField">
+                                            <!-- weblogin.email_or_phone_label -->
+                                            <div class="item_tf item_inp" style="">
+                                                <input data-type="text" class="tf_g tf_email" name="username"
+                                                       validator="email_or_phone_or_kakaoid" type="text" id="id_email_2"
+                                                       placeholder="이메일">
+                                            </div>
+                                        </div>
+                                        <div class="item_tf item_inp" style="">
+                                            <input data-type="password" class="tf_g " name="password" type="password"
+                                                   validator="password" id="id_password_3" placeholder="비밀번호">
+                                        </div>
+
+                                        <div class="wrap_btn">
+                                            <button class="btn_g btn_confirm submit" type="submit">로그인</button>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div><!--// mArticle -->
+        </div><!-- // cMain -->
+
+    </div>
+</div>
+</body>
+</html>

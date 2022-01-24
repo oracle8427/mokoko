@@ -21,3 +21,4 @@ spring:
 logging:
   level:
     '[mokoko]': debug
+    '[org.springframework.security.web]': trace

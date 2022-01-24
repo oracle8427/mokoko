@@ -26,6 +26,13 @@ define(['app', 'text!app/app-template.html'], function (app, template) {
             }
             html = compiledTemplate();
             return html;
+        },
+        onRender: function () {
+            var $logoutForm = $('#logoutForm');
+            this.$el.find('a#logoutLink').click(function(event) {
+                event.preventDefault() && event.stopPropagation();
+                $logoutForm.submit();
+            });
         }
     });
 

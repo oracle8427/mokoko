@@ -12,8 +12,12 @@ public class RootController {
 
     @RequestMapping("")
     public String layout() {
-        log.info("layout...");
         return "layout";
+    }
+
+    @RequestMapping("login")
+    public String login() {
+        return "login";
     }
 
 }
