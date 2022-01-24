@@ -55,7 +55,7 @@ public class ContactController {
         if (params.containsKey("groupID"))
             contacts = contactService.getGroupContacts(params);
         else if (params.containsKey("trash")) {
-            Group trash = groupService.getTrash();
+            Group trash = groupService.getTrash(username);
             params.put("groupID", trash.getId());
             contacts = contactService.getGroupContacts(params);
         } else
@@ -72,7 +72,7 @@ public class ContactController {
         params.put("userID", username);
         ContactPaginator paginator = new ContactPaginator();
         if (params.containsKey("trash")) {
-            Group trash = groupService.getTrash();
+            Group trash = groupService.getTrash(username);
             params.put("groupID", trash.getId());
             paginator.setParameters(params);
             paginator.setEdges(contactService.getGroupContactPaginator(paginator));
@@ -95,7 +95,7 @@ public class ContactController {
         if (!(value instanceof List))
             throw new BadRequestException("Bad Parameter.");
 
-        Group trash = groupService.getTrash();
+        Group trash = groupService.getTrash(username);
         if (trash == null || trash.getId() == 0)
             throw new NotFoundException("Not Found Trash");
 

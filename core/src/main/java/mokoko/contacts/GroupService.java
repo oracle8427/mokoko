@@ -1,12 +1,9 @@
 package mokoko.contacts;
 
-import mokoko.user.UserWrapperService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +15,9 @@ public class GroupService {
 
     private final ContactService contactService;
 
-    private final UserWrapperService userWrapperService;
-
-    public GroupService(GroupMapper groupMapper, ContactService contactService,
-                        UserWrapperService userWrapperService) {
+    public GroupService(GroupMapper groupMapper, ContactService contactService) {
         this.groupMapper = groupMapper;
         this.contactService = contactService;
-        this.userWrapperService = userWrapperService;
     }
 
     public Group getGroup(Map<String, Object> params) {
@@ -72,9 +65,9 @@ public class GroupService {
         return groupMapper.updateGroup(params);
     }
 
-    public Group getTrash() {
+    public Group getTrash(String userID) {
         Map<String, Object> params = new HashMap<>();
-        params.put("userID", userWrapperService.getUsername());
+        params.put("userID", userID);
         params.put("groupType", Group.TRASH);
         return getGroup(params);
     }
