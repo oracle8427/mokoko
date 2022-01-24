@@ -22,9 +22,10 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 this.listenTo(app.vent, 'sync:contact-groups-information', this.syncContactGroup);
                 this.listenTo(app.vent, 'move:trash', this.moveToTrash);
                 this.listenTo(app.vent, 'remove:contacts', this.removeContacts);
+                this.listenTo(app.vent, 'remove:contacts-at-group', this.removeContactsAtGroup);
                 this.listenTo(app.vent, 'create:contact', this.createContact);
                 this.listenTo(app.vent, 'update:important', this.updateImportant);
-                this.listenTo(app.vent, 'paginate:contact-list',this.paginateContactList)
+                this.listenTo(app.vent, 'paginate:contact-list', this.paginateContactList)
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -133,8 +134,8 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 if (part === 'trash') {
                     contact.contactCollection.add(models);
                     app.vent.trigger('fetch:contact-count', ['all']);
-                    app.vent.trigger('fetch:group-collection');
                 }
+                app.vent.trigger('fetch:group-collection');
 
                 location.hash = location.hash + '?_=' + new Date().getTime();
             },
@@ -165,7 +166,17 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 contact.trashCollection.remove(removedModels);
                 location.hash = location.hash + '?_=' + new Date().getTime();
             },
+            removeContactsAtGroup: function (contactIDList) {
+                if (!contactIDList || contactIDList.length === 0)
+                    return;
+                var removedModels = _.filter(contact.contactCollection.models, function (model) {
+                    return _.contains(contactIDList, model.id)
+                });
+                contact.contactCollection.remove(removedModels);
+                location.hash = '';
+            },
             createContact: function (model) {
+                app.vent.trigger('fetch:contact-count', ['all', 'important']);
                 contact.contactCollection.add(model);
                 location.hash = location.hash.indexOf('trash') > -1 ?
                     '' :

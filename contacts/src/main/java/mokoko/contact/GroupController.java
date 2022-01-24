@@ -89,14 +89,17 @@ public class GroupController {
         if (group == null)
             throw new NotFoundException("Not Found Group");
 
+        params.clear();
+        params.put("groupID", group.getId());
         if ("group".equals(mode)) {
             groupService.removeGroup(group.getId());
         } else if ("all".equals(mode)) {
-            groupService.removeGroupAndContacts(group.getId());
+            List<Integer> contactIDList = groupService.removeGroupAndContacts(group.getId());
+            params.put("contactIDList", contactIDList);
         } else {
             throw new BadRequestException("unknown");
         }
-        return ResponseEntity.ok(id);
+        return ResponseEntity.ok(params);
     }
 
     @PostMapping(value = "order", headers = "Content-Type=application/x-www-form-urlencoded", params = "_method=PATCH")

@@ -298,8 +298,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     var attributes = {
                         name: groupName
                     }
-                    if (self.groupModel.isNew())
-                        attributes['sortNumber'] = _.last(contact.groupCollection.models).get('sortNumber') + 1;
+                    if (self.groupModel.isNew()) {
+                        var lastModel = _.last(contact.groupCollection.models);
+                        attributes['sortNumber'] = lastModel ? lastModel.get('sortNumber') + 1 : 0;
+                    }
 
                     if (!self.groupModel.isNew())
                         options['patch'] = true;
@@ -343,15 +345,18 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     self.model.destroy({
                         url: self.model.url() + '?mode=' + mode,
                         wait: true,
-                        success: function () {
+                        success: function (model, response, xhr) {
                             app.vent.trigger('show:toast-layer', {
                                 message: '선택한 그룹이 삭제되었습니다.'
                             });
                             app.vent.trigger('fetch:contact-count', ['all', 'important', 'recently']);
-
-                            // 연락처까지 삭제로 인해 영향받은 모든 그룹을 찾아서 연락처 개수를 갱신 시켜줄 수는 없으므로 fetch:
                             if ('all' === mode)
                                 app.vent.trigger('fetch:group-collection');
+
+                            if (response) {
+                                if (_.size(response.contactIDList) > 0)
+                                    app.vent.trigger('remove:contacts-at-group', response.contactIDList);
+                            }
                         },
                         complete: function () {
                             self.close();
@@ -1140,7 +1145,10 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     contact.groupCollection.create(groupModel, {
                         success: function (model, response, xhr) {
                             var $groups = self.$el.find('ul#contactLayerGroups');
-                            var html = contact.ContactEditLayer.templates['groupItem']({groupModel: model});
+                            var html = contact.ContactEditLayer.templates['groupItem'] ({
+                                groups : contact.groupCollection.models,
+                                groupModel: model
+                            });
                             $groups.append(html);
                             $groups.find('#inpWriteGroup' + model.id).prop('checked', true);
                             app.vent.trigger('show:toast-layer', {
@@ -1267,11 +1275,15 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                     app.debug('contactFields.contactExpansions', contactFields.contactExpansions);
                     app.debug('this.model', self.contactModel);
 
+
                     // POST or PUT
                     self.contactModel.save(contactFields, {
                         success: function (model, response, xhr) {
-                            app.vent.trigger('create:contact', model);
+                            app.vent.trigger('fetch:group-collection');
+                            if (self.isNew)
+                                app.vent.trigger('create:contact', model);
                             self.close();
+                            location.hash = location.hash + '?_=' + new Date().getTime();
                         }
                     });
                 });

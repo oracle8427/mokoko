@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -24,6 +25,11 @@ import java.util.Arrays;
 @SpringBootApplication(scanBasePackages = {"mokoko"})
 public class ContactsApplication extends SpringBootServletInitializer {
     private static final Logger LOG = LoggerFactory.getLogger(ContactsApplication.class);
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(ContactsApplication.class);
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(ContactsApplication.class, args);

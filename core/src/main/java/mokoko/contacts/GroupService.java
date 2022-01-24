@@ -42,13 +42,15 @@ public class GroupService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
-    public void removeGroupAndContacts(int groupID) {
+    public List<Integer> removeGroupAndContacts(int groupID) {
         // 주소록 삭제
-        for (int id : contactService.getIDListAtGroup(groupID))
+        List<Integer> contactIDList = contactService.getIDListAtGroup(groupID);
+        for (int id : contactIDList)
             contactService.deleteContact(id);
 
         // 그룹 삭제
         removeGroup(groupID);
+        return contactIDList;
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)

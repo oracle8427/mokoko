@@ -275,6 +275,14 @@ public class ContactService {
             }
             contactMapper.insertContactExpansions(contact.getContactExpansions());
         }
+        if (affectedRows > 0 && contact.getGroups() != null && contact.getGroups().size() > 0) {
+            moveToGroup(Collections.singletonList(contact.getId()),
+                    contact.getGroups() == null ? Collections.emptyList() :
+                            contact.getGroups()
+                                    .stream()
+                                    .map(Group::getId)
+                                    .collect(Collectors.toList()));
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -295,8 +303,8 @@ public class ContactService {
         if (affectedRows > 0 && contact.getContactExpansions() != null) {
             for (ContactExpansion expansion : contact.getContactExpansions()) {
                 expansion.setContactID(contact.getId());
+                contactMapper.insertContactExpansions(contact.getContactExpansions());
             }
-            contactMapper.insertContactExpansions(contact.getContactExpansions());
         }
     }
 

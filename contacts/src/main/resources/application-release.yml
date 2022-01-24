@@ -21,3 +21,4 @@ spring:
 logging:
   level:
     '[mokoko]': error
+    '[org.springframework.security.web]': error

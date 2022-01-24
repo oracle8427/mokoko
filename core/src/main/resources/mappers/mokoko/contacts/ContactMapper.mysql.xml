@@ -130,7 +130,7 @@
     </select>
 
     <select id="selectContact" resultMap="ContactResultMap">
-        SELECT <include refid="ContactsColumns" />, cr.created recent_date
+        SELECT <include refid="ContactsColumns" />, cr.created recent_date, ccg.group_id, cg.name
         FROM contact c
             LEFT JOIN contact_expansion ce
                 ON c.id = ce.contact_id
@@ -198,7 +198,7 @@
         FROM contact_contact_group ccg
             INNER JOIN contact c
                 ON ccg.contact_id = c.id
-        WHERE group_id = #{groupID}
+        WHERE ccg.group_id = #{groupID}
     </select>
 
     <select id="selectIDList" resultType="int">

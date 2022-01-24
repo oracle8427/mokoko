@@ -362,7 +362,7 @@
                     <%
                         var firstname = contactModel.get('firstname');
                         var firstWord = firstname.charAt(0);
-                        var rgb = characterMap[firstWord.toLowerCase()]
+                        var rgb = characterMap[firstWord.toLowerCase()] || 'rgb(183, 184, 178);'
                     %>
                     <span class="txt_profile"
                           style="background-color: <%- rgb %>"><%- firstWord.toUpperCase() %></span>
@@ -925,7 +925,6 @@
 </script>
 
 <script type="text/template" id="contact-layer-template">
-    <% console.log(contact); %>
     <div class="layer_head"><strong class="screen_out">상세보기</strong></div>
     <div class="layer_body">
         <div class="address_head">
@@ -972,12 +971,14 @@
         </div>
         <div class="address_body">
             <div class="bundle_address">
+                <% if (contact.nickname) { %>
                 <div class="info_address" role="text">
                     <strong class="tit_info">
-                        <span class="ico_addressbook ico_name"><%-contact.nickname || ''%></span>
+                        <span class="ico_addressbook ico_name"><%-contact.nickname%></span>
                     </strong>
                     <p class="txt_info"><%-contact.nickname || ''%></p>
                 </div>
+                <% } %>
                 <%  var expansions = _.filter(contact.contactExpansions, 'email');
                     console.log(expansions);
                     if (expansions.length === 0) { %>
