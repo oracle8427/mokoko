@@ -300,11 +300,11 @@ public class ContactService {
 
         int affectedRows = contactMapper.updateContact(contact);
         contactMapper.deleteContactExpansion(contact.getId());
-        if (affectedRows > 0 && contact.getContactExpansions() != null) {
+        if (affectedRows > 0 && contact.getContactExpansions() != null && contact.getContactExpansions().size() > 0) {
             for (ContactExpansion expansion : contact.getContactExpansions()) {
                 expansion.setContactID(contact.getId());
-                contactMapper.insertContactExpansions(contact.getContactExpansions());
             }
+            contactMapper.insertContactExpansions(contact.getContactExpansions());
         }
     }
 

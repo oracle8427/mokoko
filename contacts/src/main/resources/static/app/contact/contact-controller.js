@@ -26,6 +26,7 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 this.listenTo(app.vent, 'create:contact', this.createContact);
                 this.listenTo(app.vent, 'update:important', this.updateImportant);
                 this.listenTo(app.vent, 'paginate:contact-list', this.paginateContactList)
+                this.listenTo(app.vent, 'update:group-name', this.updateGroupName)
             },
             onClose: function () {
                 this.sidebarView.close();
@@ -53,8 +54,6 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
 
                 var collection = new contact.ContactCollection(
                     _.filter(contact.contactCollection.models, function (model) {
-                        if (model.get('groups').length > 0)
-                            console.log(model);
                         return _.contains(_.map(model.get('groups'), 'id'), groupID);
                     })
                 );
@@ -213,6 +212,18 @@ define(['app', 'app/app-init', 'app/contact/contact-models', 'app/contact/contac
                 contact.contactCollection = new contact.ContactCollection(contact.contactPaginator.edges);
                 contact.contactCollection.sort({silent: true});
                 location.hash = '';
+            },
+            updateGroupName : function (groupModel) {
+                if (!groupModel || groupModel.isNew() || !groupModel.get('name'))
+                    return;
+
+                _.each(contact.contactCollection.models, function (contactModel) {
+                    _.each(contactModel.get('groups'), function (group) {
+                        if (groupModel.id === group.id)
+                            group.name = groupModel.get('name');
+                    })
+                });
+                location.hash = location.hash + '?_=' + new Date().getTime();
             }
         });
 

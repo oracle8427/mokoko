@@ -287,23 +287,27 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         });
                         return false;
                     }
+                    var isNew = self.groupModel.isNew();
                     var options = {
                         success: function (model, response, xhr) {
                             $closeButton.click();
                             app.vent.trigger('show:toast-layer', {
-                                message: self.model.isNew() ? '그룹이 생성되었습니다.' : '그룹명이 수정되었습니다.'
+                                message: isNew ? '그룹이 생성되었습니다.' : '그룹명이 수정되었습니다.'
                             });
+
+                            if (!isNew)
+                                app.vent.trigger('update:group-name', model);
                         }
                     }
                     var attributes = {
                         name: groupName
                     }
-                    if (self.groupModel.isNew()) {
+                    if (isNew) {
                         var lastModel = _.last(contact.groupCollection.models);
                         attributes['sortNumber'] = lastModel ? lastModel.get('sortNumber') + 1 : 0;
                     }
 
-                    if (!self.groupModel.isNew())
+                    if (!isNew)
                         options['patch'] = true;
 
                     self.groupModel.set(attributes);
@@ -821,7 +825,8 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         $eventTarget.hasClass('ico_modify') ||
                         $eventTarget.hasClass('ico_group') ||
                         $eventTarget.hasClass('ico_del') ||
-                        $eventTarget.hasClass('contact_chk'))
+                        $eventTarget.hasClass('contact_chk') ||
+                        $eventTarget.closest('div.layer_type3').length > 0)
                         return;
 
                     var id = $(this).data('id');
@@ -867,6 +872,7 @@ define(['app', 'text!app/contact/contact-template.html', 'app/contact/contact-mo
                         app.dimmedLayer.showDimmed();
                         app.vent.trigger('confirm:move-to-trash-contacts', [contactID]);
                     }
+                    return false;
                 });
             },
             moveToTrash: function (contactIDList) {
