@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="pragma" content="nocache">
+    <meta http-equiv="Expires" content="-1">
+    <meta name="viewport"
+          content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width">
+    <meta content="website">
+    <meta content="카카오계정">
+
+    <style type="text/css">
+        @charset "UTF-8";
+        .account_comm {
+            display: table;
+            width: 100%;
+            min-width: 320px;
+            height: 100%;
+            border-collapse: separate;
+        }
+
+        body, th, td, input, select, textarea, button {
+            font-size: 16px;
+            line-height: 1.5;
+            font-family: NotoSans-Regular, AppleSDGothicNeo-Regular, "맑은 고딕", Malgun Gothic, "돋움", dotum, sans-serif;
+            color: #7c7c7c;
+            letter-spacing: -0.03em;
+            word-wrap: break-word;
+        }
+
+        body {
+            background: #fff;
+            -webkit-text-size-adjust: none;
+        }
+
+        body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, textarea, p, blockquote, th, td, input, select, button {
+            margin: 0;
+            padding: 0;
+        }
+
+        .account_comm #kakaoWrap {
+            position: relative;
+            display: table-cell;
+            height: 100%;
+            vertical-align: middle;
+            padding: 50px 0;
+        }
+
+        .account_comm #kakaoHead {
+            max-width: 520px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        #kakaoServiceLogo {
+            display: inline-block;
+            width: 88px;
+            height: 27px;
+            margin: 0 auto;
+            line-height: 1;
+            vertical-align: top;
+            background: url(../img/ico_account-e8750da61bf611ac86a0dd8350c4fd35e3e71cca4885218a9052a286df0222f8.png);
+        }
+
+        .ir_wa {
+            display: block;
+            overflow: hidden;
+            position: relative;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+        }
+
+        fieldset, img {
+            border: 0 none;
+        }
+
+        img[Attributes Style
+
+        ]
+        {
+            height: 30px
+        ;
+        }
+        #kakaoContent, #mArticle {
+            display: block;
+        }
+
+        .account_type2 #mArticle {
+            max-width: 520px;
+            padding-bottom: 49px;
+        }
+
+        .account_comm #mArticle {
+            position: relative;
+            max-width: 580px;
+            min-height: 520px;
+            margin: 40px auto;
+            padding: 58px 69px 139px;
+            border: 1px solid #e5e5e5;
+            border-radius: 2px;
+            box-sizing: border-box;
+        }
+
+        .screen_out {
+            overflow: hidden;
+            position: absolute;
+            width: 0;
+            height: 0;
+            line-height: 0;
+            text-indent: -9999px;
+        }
+
+        .info_identity {
+            padding-top: 21px;
+            text-align: center;
+        }
+
+        .info_identity .ico_error {
+            width: 80px;
+            height: 80px;
+            background-position: -270px -20px;
+        }
+
+        element.style {
+        }
+
+        .info_identity .ico_error {
+            width: 80px;
+            height: 80px;
+            background-position: -270px -20px;
+        }
+
+        .ico_error {
+            width: 15px;
+            height: 15px;
+            background-position: -150px -60px;
+        }
+
+        .ico_accountcheck {
+            display: inline-block;
+            overflow: hidden;
+            font-size: 0;
+            line-height: 0;
+            text-indent: -9999px;
+            vertical-align: top;
+            background: url(../img/ico_accountcheck-5adb29f1bbff0b28d84089047be030b58cb2a91863d3700dc3c7b022488a5c01.png);
+        }
+
+        .info_identity .tit_identity {
+            display: block;
+            margin-top: 30px;
+            font-weight: normal;
+            font-size: 18px;
+            line-height: 24px;
+            color: #333;
+            text-align: center;
+        }
+
+        .info_identity .desc_identity {
+            margin-top: 11px;
+            font-size: 14px;
+            line-height: 22px;
+        }
+
+        .wrap_btn.type_fixed {
+            overflow: hidden;
+            position: absolute;
+            right: 69px;
+            bottom: 49px;
+            left: 69px;
+            text-align: center;
+        }
+
+        .wrap_btn.type_fixed .btn_g:only-of-type {
+            width: 100%;
+        }
+
+        .wrap_btn.type_fixed .btn_g {
+            float: left;
+        }
+
+        .wrap_btn .btn_g {
+            display: block;
+            height: 50px;
+            padding: 0;
+            border: 0;
+            border-radius: 4px;
+            font-size: 15px;
+            color: #191919;
+            background-color: #f6f6f6;
+        }
+
+        .btn_g {
+            box-sizing: border-box;
+        }
+
+        button {
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+        }
+    </style>
+</head>
+
+<title>카카오 서비스 오류 안내</title>
+<body class="account_comm account_type2" style="">
+<div id="kakaoWrap">
+    <div id="kakaoHead" role="banner">
+        <h1 id="kakaoServiceLogo">
+            <span class="ir_wa">kakao</span>
+            <img id="brand" height="30" class="img_logo" alt="kakao" style="display: none;">
+        </h1>
+    </div>
+
+    <div id="page-error" data-role="page" style="display: block;">
+        <div id="kakaoContent" class="cont_commonality" role="main">
+            <div id="cMain">
+                <div id="mArticle">
+
+                    <h2 id="kakaoBody" class="screen_out">카카오 서비스 오류 안내</h2>
+                    <div class="wrap_identity">
+                        <div class="info_identity">
+                            <span class="ico_accountcheck ico_error"></span>
+                            <strong class="tit_identity" id="errorTitle">카카오 서비스 오류 안내</strong>
+                            <p class="desc_identity" id="errorMessage">
+                                올바르지 않은 접근입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="confirm" class="wrap_btn type_fixed">
+                        <button class="btn_g" type="button">확인</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" th:inline="javascript">
+    window.onload = function () {
+        var button = document.getElementById('confirm');
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            location.href = "/contacts";
+        });
+
+        var responseEntity = [[${responseEntity}]];
+        if (responseEntity && responseEntity['statusCodeValue']) {
+            var title = document.getElementById('errorTitle');
+            var message = document.getElementById('errorMessage');
+            var seriesCode = responseEntity['statusCodeValue'] / 100;
+            switch (seriesCode) {
+                case 4:
+                    title.innerText = '카카오 서비스 오류 안내'; // 4xx
+                    message.innerText = '올바르지 않은 접근입니다.';
+                    break;
+                case 5:
+                    title.innerText = '서비스 이용불가'; // 5xx
+                    message.innerText = '불편을 드려 죄송합니다.';
+                    break;
+            }
+        }
+    };
+
+
+</script>
+
+</body>
+</html>
